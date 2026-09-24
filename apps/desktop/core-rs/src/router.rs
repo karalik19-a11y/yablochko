@@ -210,7 +210,7 @@ fn metrics_compare(conn: &Connection, query: &str) -> Result<Value, String> {
         let mut stmt = conn.prepare(&sql).map_err(|e| e.to_string())?;
         let refs: Vec<&str> = codes.iter().map(|s| s.as_str()).collect();
         let rows = stmt
-            .query_map(refs.as_slice(), |r| {
+            .query_map(rusqlite::params_from_iter(refs.iter()), |r| {
                 Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?))
             })
             .map_err(|e| e.to_string())?;
@@ -253,7 +253,7 @@ fn metrics_compare(conn: &Connection, query: &str) -> Result<Value, String> {
     }
     let refs: Vec<&str> = params.iter().map(|s| s.as_str()).collect();
     let rows = stmt
-        .query_map(refs.as_slice(), |r| {
+        .query_map(rusqlite::params_from_iter(refs.iter()), |r| {
             Ok((
                 r.get::<_, String>(0)?,
                 r.get::<_, String>(1)?,
