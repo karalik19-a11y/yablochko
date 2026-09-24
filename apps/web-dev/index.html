@@ -8,6 +8,51 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Desktop-профиль (Этап 15): в Tauri-вебвью /api/v1 обслуживает Rust-ядро
+      // через IPC-команду `api`. В браузере (dev/preview) __TAURI__ отсутствует —
+      // fetch остаётся нативным. Контракт конвертов идентичен.
+      (function () {
+        var invoke = null;
+        try {
+          invoke = window.__TAURI__ && window.__TAURI__.core && window.__TAURI__.core.invoke;
+        } catch (e) {
+          invoke = null;
+        }
+        if (!invoke || typeof window.fetch === 'undefined') return;
+        var nativeFetch = window.fetch.bind(window);
+        window.fetch = function (input, init) {
+          try {
+            var url = typeof input === 'string' ? input : (input && input.url) || '';
+            if (url.indexOf('/api/') !== 0) return nativeFetch(input, init);
+            var u = new URL(url, 'tauri://local');
+            var method = ((init && init.method) || 'GET').toUpperCase();
+            var body = init && init.body ? String(init.body) : null;
+            return invoke('api', {
+              path: u.pathname,
+              query: u.search ? u.search.slice(1) : '',
+              method: method,
+              body: body
+            }).then(
+              function (payload) {
+                return new Response(JSON.stringify(payload), {
+                  status: 200,
+                  headers: { 'content-type': 'application/json' }
+                });
+              },
+              function (err) {
+                return new Response(JSON.stringify({ error: String(err) }), {
+                  status: 200,
+                  headers: { 'content-type': 'application/json' }
+                });
+              }
+            );
+          } catch (e) {
+            return nativeFetch(input, init);
+          }
+        };
+      })();
+    </script>
     <script type="module" src="../../packages/app/src/main.tsx"></script>
   </body>
 </html>

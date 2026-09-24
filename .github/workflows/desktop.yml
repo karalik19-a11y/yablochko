@@ -1,0 +1,85 @@
+name: Desktop
+
+# Этап 15: сборка YABLOKO_INTELLIGENCE_Setup.exe (Tauri 2, Rust-ядро core-rs).
+# Локально Rust-тулчейн недоступен (ADR-0002/0004) — полный цикл только в CI:
+# SPA (vite) → desktop-ресурсы (api_cache поверх настоящего приложения) →
+# cargo test (golden-тесты Монте-Карло) → tauri build (NSIS+MSI) →
+# тихая установка /S → смоук установленного exe (--smoke).
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+concurrency:
+  group: desktop-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build SPA (typecheck + vite)
+        run: npm run build
+
+      - name: Build desktop resources (seeded DB + api_cache + templates)
+        shell: bash
+        run: npx tsx scripts/build-desktop-resources.ts apps/desktop/core-rs/resources
+
+      - name: Rust unit tests (golden Монте-Карло, поиски)
+        run: cargo test --manifest-path apps/desktop/core-rs/Cargo.toml --release
+
+      - name: Tauri build (NSIS + MSI)
+        working-directory: apps/desktop
+        shell: bash
+        run: npx @tauri-apps/cli@^2 build --config core-rs/tauri.conf.json
+
+      - name: Smoke — silent install (/S) and run --smoke
+        shell: pwsh
+        run: |
+          $setup = Get-ChildItem -Path apps/desktop/core-rs/target -Recurse -Filter "*-setup.exe" |
+            Select-Object -First 1
+          if (-not $setup) { Write-Error "NSIS setup.exe не найден"; exit 1 }
+          Write-Host "Setup: $($setup.FullName) ($([math]::Round($setup.Length/1MB,1)) MB)"
+          $msi = Get-ChildItem -Path apps/desktop/core-rs/target -Recurse -Filter "*.msi" |
+            Select-Object -First 1
+          if ($msi) { Write-Host "MSI: $($msi.FullName) ($([math]::Round($msi.Length/1MB,1)) MB)" }
+
+          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+          Copy-Item $setup.FullName artifacts/YABLOKO_INTELLIGENCE_Setup.exe
+          if ($msi) { Copy-Item $msi.FullName artifacts/YABLOKO_INTELLIGENCE.msi }
+
+          $p = Start-Process -FilePath $setup.FullName -ArgumentList "/S" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { Write-Error "Тихая установка завершилась с кодом $($p.ExitCode)"; exit 1 }
+
+          $exe = Get-ChildItem -Path $env:LOCALAPPDATA -Recurse -Filter "YABLOKO INTELLIGENCE.exe" -ErrorAction SilentlyContinue |
+            Select-Object -First 1
+          if (-not $exe) { Write-Error "Установленный exe не найден"; exit 1 }
+          Write-Host "Installed: $($exe.FullName)"
+
+          $smoke = Start-Process -FilePath $exe.FullName -ArgumentList "--smoke" -Wait -PassThru -NoNewWindow
+          if ($smoke.ExitCode -ne 0) { Write-Error "Смоук установленного приложения провален"; exit 1 }
+          Write-Host "SMOKE PASS"
+
+      - name: Upload installers
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: YABLOKO_INTELLIGENCE_installers
+          path: |
+            artifacts/YABLOKO_INTELLIGENCE_Setup.exe
+            artifacts/YABLOKO_INTELLIGENCE.msi
+          if-no-files-found: warn
+          retention-days: 30

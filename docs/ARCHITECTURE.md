@@ -402,3 +402,4 @@ virtualization на клиенте (бюджеты §10).
 | 0006 | SQLite (транзакции) + DuckDB (аналитика) в embedded-профиле; PostgreSQL/ClickHouse — server | Принято (Этап 1) |
 | 0007 | Дистрибуция/обновления: Tauri 2 + GitHub Releases + подпись + rollback | Принято (Этап 1) |
 | 0008 | Stable geo-id: `ru:{level}:{официальный код}`, таблица geo_merges | Принято (Этап 1) |
+| 0009 | Desktop-профиль: api_cache (пре-рендер Node-контуром при сборке) + живые порты в Rust; DuckDB ядра отложен | Принято (Этап 15) |

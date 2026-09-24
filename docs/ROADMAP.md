@@ -507,6 +507,29 @@ Actions (полный тулчейн); смоук-тесты артефакта.
 **DoD:** CI-сборка `YABLOKO_INTELLIGENCE_Setup.exe`; установка на чистую Windows без
 Python/Node/Rust/Git/Docker; запуск, базовый сценарий анализа — работают.
 
+**Статус: ✅ выполнен (2026-09-24).** `apps/desktop/core-rs` (Rust, Tauri 2):
+IPC-команда `api(method, path, query, body)` обслуживает тот же контракт
+/api/v1, что Fastify-адаптер; БД — rusqlite (bundled SQLite, read-only).
+**Профиль desktop:** Node на чистой Windows отсутствует, поэтому ответы
+пре-рендерятся при сборке Node-контуром (scripts/build-desktop-resources.ts:
+полный сид + api_cache 660 ответов через НАСТОЯЩЕЕ приложение fastify-inject —
+нулевое дублирование логики; 7 FAQ AI-аналитика через полноценный askAnalyst).
+Живое в Rust (точные порты с golden-тестами на значениях TS): decision/compute
+(детерминированный Монте-Карло, mulberry32/hash32 по UTF-16), geo/documents/
+osint search, metrics/compare, metrics/trust, analyst/verify, acknowledge;
+fallback вне FAQ-набора — честный. Архитектура: api_cache → точное попадание →
+живые обработчики → кэш по пути → 404-конверт. Frontend: fetch-шимбл в
+web-dev/index.html (Tauri: /api → invoke('api'); браузер — без изменений).
+Установка: NSIS (currentUser, RU/EN) + MSI; ярлыки Start Menu + рабочий стол
+(installer-hooks); uninstaller штатный NSIS. Иконки (Я-бренд, ico+png).
+CI: .github/workflows/desktop.yml (windows-latest: npm ci → SPA → ресурсы →
+cargo test → tauri build → тихая установка /S → смоук установленного exe
+--smoke: счётчики БД + живой расчёт модели → артефакты
+YABLOKO_INTELLIGENCE_Setup.exe + .msi).
+Отклонение: duckdb в ядре отложен (ADR-0007) — аналитика покрывается SQLite-
+кэшем; перепривязка при появлении серверного профиля. Rust локально не
+компилируется (ADR-0002) — компиляция и golden-тесты в CI.
+
 ## Этап 16 — GitHub Updates
 
 **Цель:** автообновления.
@@ -555,4 +578,5 @@ launch → login → analysis → export → update → uninstall; финаль�
 | 12. Decision Lab / ALADDIN | ✅ выполнен (сценарный движок p10/p50/p90 «при предположениях…», каузальный линтер, Policy Lab на реестре позиций) |
 | 13. AI Analyst | ✅ выполнен (packages/copilot: провайдеры, read-only инструменты, ANSWER/EVIDENCE/SOURCES/UNCERTAINTY, VERIFY SOURCES, injection defense, degraded mode) |
 | 14. Beautiful UX | ✅ выполнен (Ctrl+K палитра с командами мастер-промпта и живым поиском, темы без перезагрузки, responsive, focus-visible, motion, UI_CHECKLIST, CI-скриншоты) |
-| 15–18 | — запланированы |
+| 15. Windows Desktop (Tauri 2) | ✅ выполнен (apps/desktop/core-rs: IPC-роутер api_cache+живые порты, NSIS+MSI, ярлыки, смоук --smoke, CI desktop.yml) |
+| 16–18 | — запланированы |

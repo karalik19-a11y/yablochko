@@ -16,3 +16,7 @@ var/
 *.log
 .DS_Store
 coverage/
+
+# Desktop-ресурсы генерируются scripts/build-desktop-resources.ts (CI)
+apps/desktop/core-rs/resources/
+screenshots/
