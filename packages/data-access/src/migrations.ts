@@ -627,6 +627,61 @@ CREATE TABLE osint_edges (
 CREATE INDEX idx_osint_edges_src ON osint_edges(src_entity_id);
 CREATE INDEX idx_osint_edges_dst ON osint_edges(dst_entity_id);
 `
+  },
+  {
+    id: 9,
+    name: '009_media_intelligence',
+    sql: `
+-- Media Intelligence (Этап 11): модель публикации. ЗАПРЕТ ЯРЛЫКОВ БЕЗ
+-- МЕТОДОЛОГИИ закреплён схемой: sentiment-контекст без сноски методологии
+-- невозможен (CHECK). До реального импорта — SYNTHETIC-издания (grade D,
+-- фиктивные названия вида «SYNTHETIC-ИЗДАНИЕ …», не реальные СМИ).
+CREATE TABLE media_outlets (
+  outlet_id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  kind TEXT NOT NULL CHECK (kind IN ('newspaper','online','tv','radio','aggregator')),
+  source_id TEXT NOT NULL REFERENCES sources(source_id),
+  data_mode TEXT NOT NULL DEFAULT 'SYNTHETIC',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE(name)
+);
+
+CREATE TABLE media_articles (
+  article_id TEXT PRIMARY KEY,
+  outlet_id TEXT NOT NULL REFERENCES media_outlets(outlet_id),
+  title TEXT NOT NULL,
+  published_at TEXT NOT NULL,
+  author TEXT,
+  url TEXT,
+  topic_id TEXT REFERENCES topics(topic_id),
+  mentions_yabloko INTEGER NOT NULL DEFAULT 0 CHECK (mentions_yabloko IN (0,1)),
+  mention_context TEXT CHECK (mention_context IN ('positive','neutral','negative','unclear') OR mention_context IS NULL),
+  sentiment_methodology TEXT,
+  claim_note TEXT,
+  source_id TEXT NOT NULL REFERENCES sources(source_id),
+  data_mode TEXT NOT NULL DEFAULT 'SYNTHETIC',
+  verification_status TEXT NOT NULL DEFAULT 'UNVERIFIED',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  -- ЗАПРЕТ ЯРЛЫКОВ БЕЗ МЕТОДОЛОГИИ (DoD-тест):
+  CHECK (mention_context IS NULL OR (sentiment_methodology IS NOT NULL AND length(sentiment_methodology) >= 20))
+);
+CREATE INDEX idx_media_articles_date ON media_articles(published_at DESC);
+CREATE INDEX idx_media_articles_topic ON media_articles(topic_id);
+CREATE INDEX idx_media_articles_outlet ON media_articles(outlet_id);
+
+-- Claims: утверждения о партии/теме в публикациях, категоризированы.
+CREATE TABLE media_claims (
+  claim_id TEXT PRIMARY KEY,
+  article_id TEXT REFERENCES media_articles(article_id),
+  claim_text TEXT NOT NULL,
+  claim_category TEXT NOT NULL CHECK (claim_category IN ('party_statement','external_claim','unverified_claim')),
+  source_id TEXT NOT NULL REFERENCES sources(source_id),
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+`
   }
 ];
 

@@ -45,6 +45,14 @@ import {
   getOsintGraph,
   getOsintProfile,
   searchOsintEntities,
+  loadMediaFile,
+  seedMedia,
+  getMediaMentions,
+  getMediaTopics,
+  getMediaTrend,
+  getMediaOutlets,
+  getMediaClaims,
+  MEDIA_SENTIMENT_METHODOLOGY_FALLBACK,
   listElections,
   getElection,
   getYablokoFederalHistory,
@@ -90,6 +98,7 @@ export interface AppOptions {
   electionsDatasetPath?: string;
   postmortemDatasetPath?: string;
   osintGraphPath?: string;
+  mediaDatasetPath?: string;
   /** Отключить генерацию SYNTHETIC-метрик. */
   disableSyntheticMetrics?: boolean;
   /** Отключить генерацию SYNTHETIC-агрегатов настроений. */
@@ -234,6 +243,12 @@ export async function buildApp(opts: AppOptions): Promise<AppHandle> {
     const osint = loadOsintGraph(opts.osintGraphPath);
     seedOsintGraph(db, osint);
     osintMethodology = osint.meta.methodology;
+  }
+  let mediaMethodology = '';
+  if (opts.mediaDatasetPath) {
+    const media = loadMediaFile(opts.mediaDatasetPath);
+    seedMedia(db, media, { sourceId: 'synthetic-media' });
+    mediaMethodology = media.meta.methodology;
   }
 
   const timers: NodeJS.Timeout[] = [];
@@ -535,6 +550,53 @@ export async function buildApp(opts: AppOptions): Promise<AppHandle> {
       return {
         data: { query, items: searchOsintEntities(db, query) },
         meta: metaFor('SEED', ['Поиск по публичным сущностям (имя/роль/описание).'])
+      };
+    },
+    mediaMentions: (q: Record<string, string>) => {
+      const monthsRaw = Number(q.months ?? 12);
+      const months = Number.isFinite(monthsRaw) ? Math.min(Math.max(Math.round(monthsRaw), 1), 36) : 12;
+      const topic = /^[a-z_0-9]+$/i.test(String(q.topic ?? '')) ? String(q.topic) : undefined;
+      const outlet = /^[a-z0-9-]+$/i.test(String(q.outlet ?? '')) ? String(q.outlet) : undefined;
+      const mentionsOnly = String(q.mentions ?? '') === '1';
+      const text = String(q.q ?? '');
+      const data = getMediaMentions(
+        db,
+        { topicId: topic, outletId: outlet, months, onlyMentions: mentionsOnly, q: text },
+        mediaMethodology || MEDIA_SENTIMENT_METHODOLOGY_FALLBACK
+      );
+      return {
+        data,
+        meta: metaFor('SEED', [
+          'SYNTHETIC-корпус: издания фиктивные, НЕ реальные СМИ; заменяется реальным импортом.',
+          'Каждый sentiment-ярлык несёт методологическую сноску (проверено схемой).'
+        ])
+      };
+    },
+    mediaTopics: (q: Record<string, string>) => {
+      const monthsRaw = Number(q.months ?? 12);
+      const months = Number.isFinite(monthsRaw) ? Math.min(Math.max(Math.round(monthsRaw), 1), 36) : 12;
+      return {
+        data: getMediaTopics(db, { months }, mediaMethodology || MEDIA_SENTIMENT_METHODOLOGY_FALLBACK),
+        meta: metaFor('SEED', ['Разрез по темам: доли негатива — констатация тональности публикаций, не оценка СМИ.'])
+      };
+    },
+    mediaTrend: (q: Record<string, string>) => {
+      const monthsRaw = Number(q.months ?? 12);
+      const months = Number.isFinite(monthsRaw) ? Math.min(Math.max(Math.round(monthsRaw), 1), 36) : 12;
+      return {
+        data: getMediaTrend(db, { months }, mediaMethodology || MEDIA_SENTIMENT_METHODOLOGY_FALLBACK),
+        meta: metaFor('SEED', ['Доля публикаций с упоминанием «ЯБЛОКО» — констатация, не оценка изданий.'])
+      };
+    },
+    mediaSources: () => {
+      return {
+        data: {
+          outlets: getMediaOutlets(db),
+          claims: getMediaClaims(db),
+          note:
+            'Издания фиктивные SYNTHETIC (grade D) — не реальные СМИ. Категории claims: party_statement (заявление партии, сверяется с реестром), external_claim (утверждение внешнего источника), unverified_claim (требует верификации).'
+        },
+        meta: metaFor('SEED', ['«Show original sources»: у каждой статьи есть издание, source_id и (после импорта) URL оригинала.'])
       };
     },
     civicOverview: (q: Record<string, string>) => {

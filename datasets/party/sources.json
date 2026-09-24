@@ -232,5 +232,23 @@
     },
     "status": "active",
     "update_policy": "Отключается при первом реальном импорте результатов выборов; пометка SYNTHETIC снимается автоматически"
+  },
+  {
+    "source_id": "synthetic-media",
+    "name": "SYNTHETIC: корпус публикаций Media Intelligence",
+    "owner": "YABLOKO INTELLIGENCE (internal)",
+    "url": null,
+    "source_type": "synthetic",
+    "license": "internal",
+    "collection_method": "deterministic_seed",
+    "coverage": "8 фиктивных изданий × 185 публикаций (2025-01…2026-09) по 14 темам; упоминания «ЯБЛОКО» с sentiment-методологией",
+    "period": "2025-01…2026-09",
+    "update_frequency": "on_seed",
+    "reliability": {
+      "grade": "D",
+      "note": "SYNTHETIC-корпус: издания фиктивные («SYNTHETIC-ИЗДАНИЕ …»), НЕ реальные СМИ; числа не являются рейтингами реальных изданий. Заменяется реальным импортом (RSS-парсер, fixtures/CI, Этап 11)."
+    },
+    "status": "active",
+    "update_policy": "Отключается при первом реальном импорте медиа-мониторинга; пометка SYNTHETIC снимается автоматически"
   }
 ]

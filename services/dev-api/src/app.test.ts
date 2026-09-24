@@ -20,7 +20,11 @@ import {
   RegionalElectionHistory,
   PostmortemReport,
   OsintGraph,
-  OsintProfile
+  OsintProfile,
+  MediaMentions,
+  MediaTopicsSummary,
+  MediaTrend,
+  MediaSources
 } from '@yabloko/api-contract';
 import { z } from 'zod';
 
@@ -45,7 +49,8 @@ async function withApp(fn: (app: Awaited<ReturnType<typeof buildApp>>['app']) =>
     positionLinksPath: resolve(process.cwd(), 'datasets/civic/topic_links.json'),
     electionsDatasetPath: resolve(process.cwd(), 'datasets/elections/elections.json'),
     postmortemDatasetPath: resolve(process.cwd(), 'datasets/elections/postmortem.json'),
-    osintGraphPath: resolve(process.cwd(), 'datasets/osint/osint_graph.json')
+    osintGraphPath: resolve(process.cwd(), 'datasets/osint/osint_graph.json'),
+    mediaDatasetPath: resolve(process.cwd(), 'datasets/media/media.json')
   });
   try {
     await fn(handle.app);
@@ -328,6 +333,44 @@ describe('dev-api (интеграция контракта)', () => {
 
       const bad = await app.inject({ method: 'GET', url: `${API.osintEntity}?id=..%2Fetc` });
       expect(bad.statusCode).toBe(404);
+    });
+  });
+
+  it('media: mentions/topics/trend/sources по контракту, методология у каждого ярлыка', async () => {
+    await withApp(async (app) => {
+      const m = Envelope(MediaMentions).parse(
+        (await app.inject({ method: 'GET', url: `${API.mediaMentions}?months=12` })).json()
+      ).data;
+      expect(m.total).toBeGreaterThan(50);
+      expect(m.mentions).toBe(m.items.filter((i) => i.mentions_yabloko).length);
+      // СТРАЖ (DoD): каждая статья с ярлыком несёт методологическую сноску
+      for (const a of m.items) {
+        if (a.mention_context !== null) {
+          expect(a.sentiment_methodology).not.toBeNull();
+          expect(a.sentiment_methodology!.length).toBeGreaterThanOrEqual(20);
+        }
+      }
+      const splitSum = m.context_split.positive + m.context_split.neutral + m.context_split.negative + m.context_split.unclear;
+      expect(splitSum).toBe(m.mentions);
+
+      const t = Envelope(MediaTopicsSummary).parse(
+        (await app.inject({ method: 'GET', url: `${API.mediaTopics}?months=12` })).json()
+      ).data;
+      expect(t.items.length).toBeGreaterThanOrEqual(10);
+      expect(t.items.reduce((a, r) => a + r.articles, 0)).toBe(t.total_articles);
+
+      const tr = Envelope(MediaTrend).parse(
+        (await app.inject({ method: 'GET', url: `${API.mediaTrend}?months=21` })).json()
+      ).data;
+      expect(tr.points.length).toBeGreaterThanOrEqual(18);
+      for (const p of tr.points) {
+        expect(p.share_pct).toBeCloseTo((p.mentions / p.articles) * 100, 5);
+      }
+
+      const src = Envelope(MediaSources).parse((await app.inject({ method: 'GET', url: API.mediaSources })).json()).data;
+      expect(src.outlets).toHaveLength(8);
+      expect(src.outlets.every((o) => o.name.startsWith('SYNTHETIC-ИЗДАНИЕ'))).toBe(true);
+      expect(src.claims.length).toBe(3);
     });
   });
 

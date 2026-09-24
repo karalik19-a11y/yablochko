@@ -76,8 +76,8 @@ describe('migrations + seed', () => {
   it('миграции применяются один раз и идемпотентны', () => {
     const db = openDb(':memory:');
     const first = migrate(db);
-    expect(first.appliedIds).toHaveLength(8);
-    expect(countAppliedMigrations(db)).toBe(8);
+    expect(first.appliedIds).toHaveLength(9);
+    expect(countAppliedMigrations(db)).toBe(9);
     const second = migrate(db);
     expect(second.appliedIds).toHaveLength(0);
   });

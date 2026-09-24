@@ -46,6 +46,10 @@ export interface RouteDeps {
   osintGraph: () => unknown;
   osintEntity: (q: Record<string, string>) => unknown;
   osintSearch: (q: Record<string, string>) => unknown;
+  mediaMentions: (q: Record<string, string>) => unknown;
+  mediaTopics: (q: Record<string, string>) => unknown;
+  mediaTrend: (q: Record<string, string>) => unknown;
+  mediaSources: () => unknown;
   metaStatus: () => unknown;
 }
 
@@ -114,6 +118,10 @@ export function buildRoutes(deps: RouteDeps): RouteDef[] {
     { url: API.osintGraph, handler: () => deps.osintGraph() },
     { url: API.osintEntity, handler: (q) => deps.osintEntity(q) },
     { url: API.osintSearch, handler: (q) => deps.osintSearch({ q: String(q.q ?? '') }) },
+    { url: API.mediaMentions, handler: (q) => deps.mediaMentions(q) },
+    { url: API.mediaTopics, handler: (q) => deps.mediaTopics(q) },
+    { url: API.mediaTrend, handler: (q) => deps.mediaTrend(q) },
+    { url: API.mediaSources, handler: () => deps.mediaSources() },
     { url: API.metaStatus, handler: deps.metaStatus }
   ];
 }

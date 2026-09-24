@@ -10,6 +10,7 @@ export * from './matrix.js';
 export * from './elections.js';
 export * from './postmortem.js';
 export * from './osint.js';
+export * from './media.js';
 
 /** Маршруты API v1 (единый источник истины для клиента и сервера). */
 export const API = {
@@ -45,5 +46,9 @@ export const API = {
   electionsPostmortem: '/api/v1/elections/postmortem',
   osintGraph: '/api/v1/osint/graph',
   osintEntity: '/api/v1/osint/entity',
-  osintSearch: '/api/v1/osint/search'
+  osintSearch: '/api/v1/osint/search',
+  mediaMentions: '/api/v1/media/mentions',
+  mediaTopics: '/api/v1/media/topics',
+  mediaTrend: '/api/v1/media/trend',
+  mediaSources: '/api/v1/media/sources'
 } as const;

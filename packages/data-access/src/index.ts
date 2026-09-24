@@ -14,3 +14,4 @@ export * from './repositories/matrix.js';
 export * from './repositories/elections.js';
 export * from './repositories/postmortem.js';
 export * from './repositories/osint.js';
+export * from './repositories/media.js';

@@ -14,7 +14,7 @@
 | **M0 Foundation** | 1–3 | Аудит + ядро Party Context + Source Registry / ingestion | Этапы 1–3 ✅ |
 | **M1 Data Spine** | 4–5 | География, показатели территорий | Этапы 4–5 ✅ |
 | **M2 Analytics Core** | 6–8 | Настроения, Position Matrix, выборы | Этапы 6–8 ✅ |
-| **M3 Deep Modules** | 9–13 | Postmortem-2026, OSINT, медиа, Decision Lab, AI | Этапы 9–10 ✅ |
+| **M3 Deep Modules** | 9–13 | Postmortem-2026, OSINT, медиа, Decision Lab, AI | Этапы 9–11 ✅ |
 | **M4 Product Polish** | 14 | Премиум UX, целостность платформы | — |
 | **M5 Desktop Delivery** | 15–16 | Tauri Windows, Setup.exe, автообновления | — |
 | **M6 Hardening & Release** | 17–18 | Security audit, production audit, релиз | — |
@@ -395,13 +395,37 @@ mentioned/associated_with/participated_in); timeline; source graph; поиск.
 - Проверено: Vitest 141/141, lint/typecheck/build ✅, runtime: граф 3 узла / 6 рёбер,
   профиль Явлинского (IDENTITY/AFFILIATIONS/SOURCES), поиск «рыбаков» ✅.
 
-## Этап 11 — Media Intelligence
+## Этап 11 — Media Intelligence ✅ (выполнен 2026-09-24)
 
 **Цель:** мониторинг СМИ + Yabloko Media Monitor.
 **Объём:** модель публикации (издание, дата, автор, тема, сущности, sentiment с
 методологией, claims, упоминания «Яблока»); экраны MENTIONS/TOPICS/SHARE/TREND/
 SOURCES/CONTEXT; «Show original sources»; запрет ярлыков без методологии.
 **DoD:** дашборд на seed-публикациях; тест на наличие методологической сноски у sentiment.
+
+**Результат:**
+- Миграция 009: `media_outlets`, `media_articles` (**CHECK-запрет ярлыков без
+  методологии**: mention_context требует sentiment_methodology ≥ 20 символов —
+  DoD-тест на схеме), `media_claims` (категории party_statement/external_claim/
+  unverified_claim). FK topic_id → topics (связь с Civic Intelligence).
+- SYNTHETIC-корпус `datasets/media/media.json` (grade D, источник `synthetic-media`):
+  8 фиктивных изданий («SYNTHETIC-ИЗДАНИЕ А…З» — НЕ реальные СМИ), 185 публикаций
+  2025-01…2026-09 по 14 темам, 42% с упоминанием «ЯБЛОКО», каждый ярлык несёт
+  сноску media-sentiment/lexicon-v1; 3 демонстрационных claims.
+- Репозиторий: `getMediaMentions` (окно 1–36 мес, фильтры тема/издание/только-
+  упоминания/поиск-по-заголовку в JS — lower() SQLite не работает с кириллицей;
+  context_split согласован), `getMediaTopics` (разрез по темам, доля негатива),
+  `getMediaTrend` (помесячная доля упоминаний — констатация, не оценка СМИ),
+  `getMediaOutlets`, `getMediaClaims`.
+- API: `/api/v1/media/mentions|topics|trend|sources` + контракт media.ts.
+- Экран MEDIA: MENTIONS (таблица с «Show original sources»: издание, source_id,
+  data_mode, URL при импорте, сноска Methodology у каждого ярлыка), TOPICS
+  (клик-фильтр), SHARE & TREND (помесячные бары доли), SOURCES (SYNTHETIC-бейджи),
+  CONTEXT (claims + правила: запрет ярлыков без методологии, не рейтинги СМИ).
+- Проверено: Vitest 152/152 (DoD-страж на схеме: вставка mention_context без
+  сноски → CHECK-ошибка; в сиде 0 ярлыков без методологии; согласованность
+  split/mentions/доли; идемпотентность; интеграция контракта), lint/typecheck/
+  build ✅, runtime: 107 публикаций/45 упоминаний за 12 мес, тренд 21 точка ✅.
 
 ## Этап 12 — Decision Lab / ALADDIN
 
@@ -486,4 +510,5 @@ launch → login → analysis → export → update → uninstall; финаль�
 | 8. Election Intelligence | ✅ выполнен (база выборов, official_source, суммы/проценты тестами, нет предсказаний) |
 | 9. Post-Election 2026 | ✅ выполнен (postmortem, 4 несмешиваемых блока, авто-фаза, DATA QUALITY) |
 | 10. OSINT | ✅ выполнен (граф публичных сущностей, evidence-рёбра, CHECK приватности) |
-| 11–18 | — запланированы |
+| 11. Media Intelligence | ✅ выполнен (модель публикации, ярлыки только с методологией, Media Monitor) |
+| 12–18 | — запланированы |
