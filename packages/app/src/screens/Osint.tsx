@@ -192,9 +192,9 @@ function ProfileView({ entityId, onBack }: { entityId: string; onBack: () => voi
   );
 }
 
-export function OsintScreen() {
+export function OsintScreen({ initialEntityId }: { initialEntityId?: string } = {}) {
   const graph = useApi(API.osintGraph, OsintGraph);
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(initialEntityId ?? null);
   const [query, setQuery] = useState('');
   const search = useApi(`${API.osintSearch}?q=${encodeURIComponent(query)}`, OsintSearchResults);
 

@@ -15,7 +15,7 @@
 | **M1 Data Spine** | 4–5 | География, показатели территорий | Этапы 4–5 ✅ |
 | **M2 Analytics Core** | 6–8 | Настроения, Position Matrix, выборы | Этапы 6–8 ✅ |
 | **M3 Deep Modules** | 9–13 | Postmortem-2026, OSINT, медиа, Decision Lab, AI | Этапы 9–13 ✅ |
-| **M4 Product Polish** | 14 | Премиум UX, целостность платформы | — |
+| **M4 Product Polish** | 14 | Премиум UX, целостность платформы | Этап 14 ✅ |
 | **M5 Desktop Delivery** | 15–16 | Tauri Windows, Setup.exe, автообновления | — |
 | **M6 Hardening & Release** | 17–18 | Security audit, production audit, релиз | — |
 
@@ -479,6 +479,25 @@ loading/empty/error/INSUFFICIENT DATA состояния, цельность в�
 **DoD:** визуальный чек-лист по каждому экрану; палитра команд выполняет все команды
 мастер-промпта; переключение тем без перезагрузки; CI-скриншот-тесты ключевых экранов.
 
+**Статус: ✅ выполнен (2026-09-24), без изменения backend-логики.** Дизайн-система
+на токенах (тёмная/светлая, стеклянные панели, акценты) — переключение темы без
+перезагрузки (data-theme + localStorage, тест). Command Palette: Ctrl+K реально
+открывает/закрывает палитру (слушатель в AppShell), команды всех разделов +
+действия мастер-промпта (сравнение регионов, выборы, позиция, OSINT, research,
+сценарий, датасеты, обновления, VERIFY SOURCES, AI Analyst, тема) + живой поиск
+с debounce 180мс: территории, документы (FTS), публичные сущности (deep-link
+`osint/{id}`); клавиатура ↑/↓/Enter/Esc с корректными границами, aria-атрибуты.
+Keyboard navigation: :focus-visible на nav/кнопках/полях, Enter/Space на nav.
+Responsive: ≤980px сайдбар off-canvas с burger и backdrop, сетки схлопываются
+(860px), контент сжимает поля. Motion: fade-in экранов/панелей,
+prefers-reduced-motion. Чек-лист экранов: docs/UI_CHECKLIST.md (18 экранов ×
+loading/error/empty/INSUFFICIENT DATA/бейджи/trust). CI-скриншот-тесты:
+scripts/screenshots.mjs + .github/workflows/screenshots.yml (13 экранов тёмная +
+light + переключение темы без перезагрузки + палитра; ошибки консоли = красный
+job; Playwright CDN в песочнице закрыт — запуск в GitHub Actions, как ADR-0002).
+Устранена утечка: тестовые БД app.test.ts не удалялись из /tmp (19 ГБ) — rmSync
+в finally. Тесты: +8 (реестр команд мастер-промпта, фильтр, live-URL, тема).
+
 ## Этап 15 — Windows Desktop (Tauri 2)
 
 **Цель:** Setup.exe.
@@ -535,4 +554,5 @@ launch → login → analysis → export → update → uninstall; финаль�
 | 11. Media Intelligence | ✅ выполнен (модель публикации, ярлыки только с методологией, Media Monitor) |
 | 12. Decision Lab / ALADDIN | ✅ выполнен (сценарный движок p10/p50/p90 «при предположениях…», каузальный линтер, Policy Lab на реестре позиций) |
 | 13. AI Analyst | ✅ выполнен (packages/copilot: провайдеры, read-only инструменты, ANSWER/EVIDENCE/SOURCES/UNCERTAINTY, VERIFY SOURCES, injection defense, degraded mode) |
-| 14–18 | — запланированы |
+| 14. Beautiful UX | ✅ выполнен (Ctrl+K палитра с командами мастер-промпта и живым поиском, темы без перезагрузки, responsive, focus-visible, motion, UI_CHECKLIST, CI-скриншоты) |
+| 15–18 | — запланированы |

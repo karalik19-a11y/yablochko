@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { mkdtempSync } from 'node:fs';
+import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { buildApp } from './app.js';
@@ -41,7 +41,8 @@ const datasetsDir = resolve(process.cwd(), 'datasets/party');
 
 // fetch отсутствует в среде тестов -> задачи регистрируются с disableJobs.
 async function withApp(fn: (app: Awaited<ReturnType<typeof buildApp>>['app']) => Promise<void>) {
-  const dbPath = join(mkdtempSync(join(tmpdir(), 'yabloko-')), 'test.db');
+  const tmpDir = mkdtempSync(join(tmpdir(), 'yabloko-'));
+  const dbPath = join(tmpDir, 'test.db');
   const handle = await buildApp({
     dbPath,
     datasetsDir,
@@ -63,6 +64,8 @@ async function withApp(fn: (app: Awaited<ReturnType<typeof buildApp>>['app']) =>
     await fn(handle.app);
   } finally {
     handle.stop();
+    // Тестовые БД крупные: не оставлять их в /tmp (иначе диск заканчивается).
+    rmSync(tmpDir, { recursive: true, force: true });
   }
 }
 

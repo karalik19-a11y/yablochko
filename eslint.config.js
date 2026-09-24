@@ -9,8 +9,22 @@ export default tseslint.config(
       '**/node_modules/**',
       'var/**',
       'coverage/**',
+      'screenshots/**',
       '**/*.config.*'
     ]
+  },
+  {
+    // Node-скрипты (CI-скриншот-тесты, Этап 14).
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {
+      globals: {
+        process: 'readonly',
+        console: 'readonly',
+        fetch: 'readonly',
+        URL: 'readonly',
+        localStorage: 'readonly'
+      }
+    }
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,

@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { AppShell } from './components/AppShell.js';
 import { useHashRoute } from './router.js';
 import { useTheme } from './theme.js';
@@ -47,19 +46,6 @@ export function App() {
   const [route, navigate] = useHashRoute();
   const [theme, toggleTheme] = useTheme();
   const meta = useApi(API.metaStatus, MetaStatus);
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        // Палитра открывается в AppShell; здесь только перехват хоткея
-        // для предотвращения стандартного поведения браузера.
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, []);
-
   const dataMode = meta.data?.dataMode ?? 'SEED';
   const version = meta.data?.version ?? '0.2.0';
 
@@ -69,6 +55,7 @@ export function App() {
       onNavigate={navigate}
       dataMode={dataMode}
       version={version}
+      stage={14}
       theme={theme}
       onToggleTheme={toggleTheme}
     >
@@ -109,6 +96,9 @@ export function App() {
         {route === 'elections' && <ElectionsScreen />}
         {route === 'postmortem' && <PostmortemScreen />}
         {route === 'osint' && <OsintScreen />}
+        {route.startsWith('osint/') && (
+          <OsintScreen initialEntityId={decodeURIComponent(route.slice('osint/'.length))} />
+        )}
         {route === 'media' && <MediaScreen />}
         {route === 'decision-lab' && <DecisionLabScreen />}
         {route === 'research' && <ResearchScreen />}
