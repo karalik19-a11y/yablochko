@@ -38,6 +38,16 @@ const SCREENS = [
 
 const consoleErrors = [];
 
+// Известные шумы headless/GPU-окружения, не отражающие дефекты приложения.
+const NOISE = /webgl|context lost|gpu|swiftshader|dbus|GPU stall|favicon/i;
+
+function noteConsoleError(source, text) {
+  if (NOISE.test(text)) return;
+  const line = `${source}: ${text}`;
+  consoleErrors.push(line);
+  console.error(`CONSOLE-ERROR ${line}`);
+}
+
 async function capture(page, name, hash) {
   await page.goto(`${BASE}/${hash}`, { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('.app-layout', { timeout: 15000 });
@@ -56,11 +66,9 @@ const browser = await chromium.launch();
 try {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   page.on('console', (msg) => {
-    if (msg.type() === 'error' && !/favicon/i.test(msg.text())) {
-      consoleErrors.push(`${page.url()}: ${msg.text()}`);
-    }
+    if (msg.type() === 'error') noteConsoleError(page.url(), msg.text());
   });
-  page.on('pageerror', (err) => consoleErrors.push(`${page.url()}: ${String(err)}`));
+  page.on('pageerror', (err) => noteConsoleError(page.url(), `PAGEERROR ${String(err)}`));
 
   // Тёмная тема (по умолчанию) — все ключевые экраны.
   for (const [name, hash] of SCREENS) {
@@ -70,11 +78,9 @@ try {
   // Светлая тема: через localStorage до загрузки (без кликов).
   const light = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   light.on('console', (msg) => {
-    if (msg.type() === 'error' && !/favicon/i.test(msg.text())) {
-      consoleErrors.push(`${light.url()}: ${msg.text()}`);
-    }
+    if (msg.type() === 'error') noteConsoleError(light.url(), msg.text());
   });
-  light.on('pageerror', (err) => consoleErrors.push(`${light.url()}: ${String(err)}`));
+  light.on('pageerror', (err) => noteConsoleError(light.url(), `PAGEERROR ${String(err)}`));
   await light.addInitScript(() => localStorage.setItem('yabloko.theme', 'light'));
   await light.goto(`${BASE}/#/overview`, { waitUntil: 'domcontentloaded' });
   await light.waitForSelector(':root[data-theme="light"]', { timeout: 10000 });
@@ -110,7 +116,7 @@ try {
 }
 
 if (consoleErrors.length > 0) {
-  console.error('Ошибки консоли браузера:');
+  console.error(`Ошибки консоли браузера (${consoleErrors.length}):`);
   for (const e of consoleErrors) console.error(' -', e);
   process.exit(1);
 }

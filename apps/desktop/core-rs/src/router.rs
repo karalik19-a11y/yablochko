@@ -10,11 +10,9 @@
 //! POST: analyst/ask (FAQ-кэш + честный fallback), analyst/verify, alerts
 //! (acknowledge). Форматы конвертов идентичны Fastify-профилю.
 
+use crate::{compute, search};
 use rusqlite::Connection;
 use serde_json::{json, Map, Value};
-
-pub mod compute;
-pub mod search;
 
 pub fn err_json(message: &str) -> Value {
     json!({ "error": message })
@@ -273,7 +271,7 @@ fn metrics_compare(conn: &Connection, query: &str) -> Result<Value, String> {
         let entry = by_geo.entry(geo_id.clone()).or_insert_with(|| {
             json!({
                 "geo_id": geo_id, "name": name, "parent_id": parent_id,
-                "fd_name": fd_name, "values": {}, "units": units
+                "fd_name": fd_name, "values": {}, "units": units.clone()
             })
         });
         entry["values"][&metric_code] = json!(value);
@@ -473,7 +471,7 @@ fn analyst_ask(conn: &Connection, body: Option<&str>) -> Result<Value, String> {
     ];
     for (id, marker) in patterns {
         if lower.contains(marker) {
-            injections.push(json!({ "pattern_id": id, "excerpt": truncated }));
+            injections.push(json!({ "pattern_id": id, "excerpt": truncated.clone() }));
         }
     }
     let data = json!({
@@ -508,7 +506,7 @@ fn analyst_verify(conn: &Connection, body: Option<&str>) -> Result<Value, String
         .and_then(|v| v["source_ids"].as_array().cloned())
         .map(|arr| {
             arr.iter()
-                .filter_map(|x| x.as_str().map(|s| s.chars().take(120).collect()))
+                .filter_map(|x| x.as_str().map(|s| s.chars().take(120).collect::<String>()))
                 .filter(|s| !s.is_empty())
                 .take(50)
                 .collect()
