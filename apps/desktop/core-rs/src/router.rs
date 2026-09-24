@@ -331,6 +331,7 @@ fn metrics_trust(conn: &Connection, query: &str) -> Result<Value, String> {
                 )
                 .map_err(|e| e.to_string())?;
             let dm = data_mode.unwrap_or_else(|| "SYNTHETIC".to_string());
+            let period_str = period.clone().unwrap_or_default();
             let mut caveats: Vec<String> = Vec::new();
             if dm == "SYNTHETIC" {
                 caveats.push(
@@ -345,12 +346,12 @@ fn metrics_trust(conn: &Connection, query: &str) -> Result<Value, String> {
                 "metric_code": code,
                 "metric_name": metric_name.unwrap_or_default(),
                 "unit": unit.unwrap_or_default(),
-                "period": period.unwrap_or_default(),
+                "period": period_str,
                 "value": value.unwrap_or(0.0),
                 "data_mode": dm,
                 "dataset": {
                     "table": "regional_metrics",
-                    "row_key": format!("{geo}|{code}|{}|{src}", period.unwrap_or_default()),
+                    "row_key": format!("{geo}|{code}|{period_str}|{src}"),
                     "updated_at": updated_at
                 },
                 "source": source_json(conn, &src, grade, note)?,
@@ -439,10 +440,8 @@ fn analyst_ask(conn: &Connection, body: Option<&str>) -> Result<Value, String> {
     // sanitize как sanitizeUserQuestion: управляющие, схлопывание, trim, ≤500.
     let mut sanitized = String::new();
     let mut last_space = true;
-    for ch in question.chars() {
-        if ch.is_control() {
-            ch = ' ';
-        }
+    for raw in question.chars() {
+        let ch = if raw.is_control() { ' ' } else { raw };
         if ch.is_whitespace() {
             if !last_space {
                 sanitized.push(' ');
