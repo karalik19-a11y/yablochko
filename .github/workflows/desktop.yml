@@ -68,8 +68,6 @@ jobs:
           retention-days: 7
 
       - name: Tauri build (NSIS + MSI)
-
-      - name: Tauri build (NSIS + MSI)
         working-directory: apps/desktop
         shell: bash
         run: npx @tauri-apps/cli@^2 build --config core-rs/tauri.conf.json
