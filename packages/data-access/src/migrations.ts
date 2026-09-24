@@ -682,6 +682,55 @@ CREATE TABLE media_claims (
   updated_at TEXT NOT NULL
 );
 `
+  },
+  {
+    id: 10,
+    name: '010_decision_lab',
+    sql: `
+-- Decision Lab / ALADDIN (Этап 12): рабочие пространства и сценарии.
+-- Сценарий хранит ПОЛНУЮ цепочку: policy → assumptions → model → effects
+-- (direct/indirect/second_order) → uncertainty (p10/p50/p90) → evidence.
+-- Каузальные формулировки без методологии запрещены: methodology NOT NULL ≥ 40.
+CREATE TABLE research_spaces (
+  space_id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  description TEXT,
+  owner TEXT NOT NULL DEFAULT 'analyst',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE TABLE research_items (
+  item_id TEXT PRIMARY KEY,
+  space_id TEXT NOT NULL REFERENCES research_spaces(space_id),
+  item_kind TEXT NOT NULL CHECK (item_kind IN ('chart','map','note','table','scenario_ref')),
+  title TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE TABLE scenarios (
+  scenario_id TEXT PRIMARY KEY,
+  space_id TEXT REFERENCES research_spaces(space_id),
+  title TEXT NOT NULL,
+  scenario_kind TEXT NOT NULL CHECK (scenario_kind IN ('baseline','counterfactual','sensitivity','historical_analogue','policy_lab')),
+  geo_id TEXT REFERENCES geography(geo_id),
+  policy_source TEXT NOT NULL,
+  position_id TEXT,
+  time_horizon_years INTEGER NOT NULL CHECK (time_horizon_years BETWEEN 1 AND 30),
+  target_metric TEXT NOT NULL,
+  assumptions_json TEXT NOT NULL,
+  methodology TEXT NOT NULL CHECK (length(methodology) >= 40),
+  results_json TEXT,
+  evidence_json TEXT,
+  status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','computed','archived')),
+  source_id TEXT NOT NULL REFERENCES sources(source_id),
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX idx_scenarios_space ON scenarios(space_id);
+`
   }
 ];
 

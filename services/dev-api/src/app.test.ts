@@ -24,7 +24,10 @@ import {
   MediaMentions,
   MediaTopicsSummary,
   MediaTrend,
-  MediaSources
+  MediaSources,
+  ScenarioTemplatesList,
+  ScenarioCompute,
+  ScenarioList
 } from '@yabloko/api-contract';
 import { z } from 'zod';
 
@@ -50,7 +53,8 @@ async function withApp(fn: (app: Awaited<ReturnType<typeof buildApp>>['app']) =>
     electionsDatasetPath: resolve(process.cwd(), 'datasets/elections/elections.json'),
     postmortemDatasetPath: resolve(process.cwd(), 'datasets/elections/postmortem.json'),
     osintGraphPath: resolve(process.cwd(), 'datasets/osint/osint_graph.json'),
-    mediaDatasetPath: resolve(process.cwd(), 'datasets/media/media.json')
+    mediaDatasetPath: resolve(process.cwd(), 'datasets/media/media.json'),
+    scenarioTemplatesPath: resolve(process.cwd(), 'datasets/decision/scenario_templates.json')
   });
   try {
     await fn(handle.app);
@@ -371,6 +375,63 @@ describe('dev-api (интеграция контракта)', () => {
       expect(src.outlets).toHaveLength(8);
       expect(src.outlets.every((o) => o.name.startsWith('SYNTHETIC-ИЗДАНИЕ'))).toBe(true);
       expect(src.claims.length).toBe(3);
+    });
+  });
+
+  it('decision: шаблоны, расчёт диапазона и сравнение сценариев (Этап 12)', async () => {
+    await withApp(async (app) => {
+      // 1) Шаблоны: 4, методология и дисклеймер присутствуют.
+      const tRes = await app.inject({ method: 'GET', url: '/api/v1/decision/templates' });
+      expect(tRes.statusCode).toBe(200);
+      const tParsed = Envelope(ScenarioTemplatesList).safeParse(tRes.json());
+      expect(tParsed.success).toBe(true);
+      if (!tParsed.success) return;
+      expect(tParsed.data.data.templates).toHaveLength(4);
+      const tpl = tParsed.data.data.templates[0];
+      if (!tpl) return;
+      expect(tpl.parameters.length).toBeGreaterThan(0);
+      expect(tpl.assumptions.length).toBeGreaterThanOrEqual(4);
+
+      // 2) Расчёт: p10<=p50<=p90, wording без каузальных формулировок.
+      const cRes = await app.inject({
+        method: 'GET',
+        url: `/api/v1/decision/compute?template=${tpl.template_id}&years=3&geo=ru:country:ru`
+      });
+      expect(cRes.statusCode).toBe(200);
+      const cParsed = Envelope(ScenarioCompute).safeParse(cRes.json());
+      expect(cParsed.success).toBe(true);
+      if (!cParsed.success) return;
+      const computed = cParsed.data.data;
+      for (const eff of computed.effects) {
+        if (eff.p10 !== null && eff.p50 !== null && eff.p90 !== null) {
+          expect(eff.p10).toBeLessThanOrEqual(eff.p50);
+          expect(eff.p50).toBeLessThanOrEqual(eff.p90);
+        }
+      }
+      expect(computed.effects.some((e) => e.order === 'direct')).toBe(true);
+      expect(computed.assumptions.length).toBeGreaterThanOrEqual(4);
+      expect(computed.wording).toMatch(/При предположениях/);
+      expect(computed.wording).toMatch(/не прогноз/);
+
+      // 3) Детерминизм: тот же запрос — тот же data (generatedAt в meta не сравниваем).
+      const c2 = await app.inject({
+        method: 'GET',
+        url: `/api/v1/decision/compute?template=${tpl.template_id}&years=3&geo=ru:country:ru`
+      });
+      expect((c2.json() as { data: unknown }).data).toEqual((cRes.json() as { data: unknown }).data);
+
+      // 4) Неизвестный шаблон — 404.
+      const bad = await app.inject({ method: 'GET', url: '/api/v1/decision/compute?template=nope' });
+      expect(bad.statusCode).toBe(404);
+
+      // 5) Список сценариев (Research Workspace): пусто, но структура и note.
+      const sRes = await app.inject({ method: 'GET', url: '/api/v1/decision/scenarios?space=sp-policy-lab' });
+      expect(sRes.statusCode).toBe(200);
+      const sParsed = Envelope(ScenarioList).safeParse(sRes.json());
+      expect(sParsed.success).toBe(true);
+      if (!sParsed.success) return;
+      expect(Array.isArray(sParsed.data.data.items)).toBe(true);
+      expect(sParsed.data.data.comparison_note).toMatch(/baseline/);
     });
   });
 

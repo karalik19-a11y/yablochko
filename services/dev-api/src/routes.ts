@@ -50,6 +50,9 @@ export interface RouteDeps {
   mediaTopics: (q: Record<string, string>) => unknown;
   mediaTrend: (q: Record<string, string>) => unknown;
   mediaSources: () => unknown;
+  decisionTemplates: () => unknown;
+  decisionCompute: (q: Record<string, string>) => unknown;
+  decisionScenarios: (q: Record<string, string>) => unknown;
   metaStatus: () => unknown;
 }
 
@@ -122,6 +125,9 @@ export function buildRoutes(deps: RouteDeps): RouteDef[] {
     { url: API.mediaTopics, handler: (q) => deps.mediaTopics(q) },
     { url: API.mediaTrend, handler: (q) => deps.mediaTrend(q) },
     { url: API.mediaSources, handler: () => deps.mediaSources() },
+    { url: API.decisionTemplates, handler: () => deps.decisionTemplates() },
+    { url: API.decisionCompute, handler: (q) => deps.decisionCompute(q) },
+    { url: API.decisionScenarios, handler: (q) => deps.decisionScenarios(q) },
     { url: API.metaStatus, handler: deps.metaStatus }
   ];
 }

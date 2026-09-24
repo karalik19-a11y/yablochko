@@ -47,6 +47,11 @@ import {
   searchOsintEntities,
   loadMediaFile,
   seedMedia,
+  loadScenarioTemplates,
+  causalLintTemplates,
+  computeScenario,
+  listScenarios,
+  seedResearchSpaces,
   getMediaMentions,
   getMediaTopics,
   getMediaTrend,
@@ -99,6 +104,7 @@ export interface AppOptions {
   postmortemDatasetPath?: string;
   osintGraphPath?: string;
   mediaDatasetPath?: string;
+  scenarioTemplatesPath?: string;
   /** Отключить генерацию SYNTHETIC-метрик. */
   disableSyntheticMetrics?: boolean;
   /** Отключить генерацию SYNTHETIC-агрегатов настроений. */
@@ -249,6 +255,18 @@ export async function buildApp(opts: AppOptions): Promise<AppHandle> {
     const media = loadMediaFile(opts.mediaDatasetPath);
     seedMedia(db, media, { sourceId: 'synthetic-media' });
     mediaMethodology = media.meta.methodology;
+  }
+  let scenarioTemplates: ReturnType<typeof loadScenarioTemplates> | null = null;
+  if (opts.scenarioTemplatesPath) {
+    scenarioTemplates = loadScenarioTemplates(opts.scenarioTemplatesPath);
+    // Линтер шаблонов на старте (DoD): каузальные формулировки без методологии запрещены.
+    const violations = causalLintTemplates(scenarioTemplates);
+    if (violations.length > 0) {
+      throw new Error(`Каузальные формулировки в шаблонах: ${violations.map((v) => v.template_id).join(', ')}`);
+    }
+    seedResearchSpaces(db, [
+      { space_id: 'sp-policy-lab', title: 'Yabloko Policy Lab', description: 'Сценарии на позициях реестра (Decision Lab / ALADDIN).' }
+    ]);
   }
 
   const timers: NodeJS.Timeout[] = [];
@@ -597,6 +615,90 @@ export async function buildApp(opts: AppOptions): Promise<AppHandle> {
             'Издания фиктивные SYNTHETIC (grade D) — не реальные СМИ. Категории claims: party_statement (заявление партии, сверяется с реестром), external_claim (утверждение внешнего источника), unverified_claim (требует верификации).'
         },
         meta: metaFor('SEED', ['«Show original sources»: у каждой статьи есть издание, source_id и (после импорта) URL оригинала.'])
+      };
+    },
+    decisionTemplates: () => {
+      if (!scenarioTemplates) return null;
+      return {
+        data: {
+          templates: scenarioTemplates.templates.map((t) => ({
+            template_id: t.template_id,
+            title: t.title,
+            description: t.description,
+            position_id: t.position_id,
+            target_metric: t.target_metric,
+            related_metrics: t.related_metrics,
+            analogue: t.analogue,
+            parameters: t.parameters,
+            assumptions: t.assumptions,
+            evidence_refs: t.evidence_refs
+          })),
+          methodology: scenarioTemplates.meta.methodology,
+          model_disclaimer: scenarioTemplates.meta.model_disclaimer
+        },
+        meta: metaFor('SEED', [
+          'Эластичности — SYNTHETIC (grade D) для демонстрации машины; не прогноз и не рекомендация.'
+        ])
+      };
+    },
+    decisionCompute: (q: Record<string, string>) => {
+      if (!scenarioTemplates) return null;
+      const tplId = String(q.template ?? '');
+      const tpl = scenarioTemplates.templates.find((t) => t.template_id === tplId);
+      if (!tpl || !/^[a-z0-9-]+$/i.test(tplId)) return null;
+      const yearsRaw = Number(q.years ?? 3);
+      const years = Number.isFinite(yearsRaw) ? Math.min(Math.max(Math.round(yearsRaw), 1), 30) : 3;
+      const geo = /^ru:[a-z_]+:[a-z0-9-_]+$/i.test(String(q.geo ?? '')) ? String(q.geo) : 'ru:country:ru';
+      // базовые линии из regional_metrics последнего периода
+      const baselineFor = (metric: string): number | null => {
+        const r = db
+          .prepare(
+            `SELECT value FROM regional_metrics rm
+             JOIN metrics_catalog mc ON mc.metric_code = rm.metric_code
+             WHERE rm.geo_id = ? AND rm.metric_code = ? ORDER BY rm.period DESC LIMIT 1`
+          )
+          .get(geo, metric) as { value: number } | undefined;
+        return r?.value ?? null;
+      };
+      const parameterValues: Record<string, number> = {};
+      for (const p of tpl.parameters) {
+        const raw = Number(q[`p_${p.key}`]);
+        parameterValues[p.key] = Number.isFinite(raw) ? Math.min(Math.max(raw, p.min), p.max) : p.default;
+      }
+      const result = computeScenario({
+        template: tpl,
+        parameterValues,
+        years,
+        baselineTarget: baselineFor(tpl.target_metric),
+        relatedBaselines: Object.fromEntries(tpl.related_metrics.map((m) => [m, baselineFor(m)])),
+        seedKey: `${tplId}|${geo}`
+      });
+      return {
+        data: result,
+        meta: metaFor('SEED', [
+          'Модельная оценка диапазонов (SYNTHETIC-эластичности): не прогноз, не причинность, не рекомендация.',
+          'Формулировка результата — только «при предположениях… модель оценивает диапазон…».'
+        ])
+      };
+    },
+    decisionScenarios: (q: Record<string, string>) => {
+      const space = /^[a-z0-9-]+$/i.test(String(q.space ?? '')) ? String(q.space) : undefined;
+      return {
+        data: {
+          items: listScenarios(db, space).map((sc) => ({
+            scenario_id: sc.scenario_id,
+            title: sc.title,
+            scenario_kind: sc.scenario_kind,
+            geo_id: sc.geo_id,
+            position_id: sc.position_id,
+            time_horizon_years: sc.time_horizon_years,
+            target_metric: sc.target_metric,
+            status: sc.status
+          })),
+          comparison_note:
+            'Сравнение сценариев — по p10/p50/p90 целевой метрики при одинаковой базовой линии и предположениях; текущая политика = baseline. Никакой апологетики позиции.'
+        },
+        meta: metaFor('SEED', ['Сценарии сохраняются в Research Workspace (Decision Lab).'])
       };
     },
     civicOverview: (q: Record<string, string>) => {

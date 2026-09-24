@@ -14,7 +14,7 @@
 | **M0 Foundation** | 1–3 | Аудит + ядро Party Context + Source Registry / ingestion | Этапы 1–3 ✅ |
 | **M1 Data Spine** | 4–5 | География, показатели территорий | Этапы 4–5 ✅ |
 | **M2 Analytics Core** | 6–8 | Настроения, Position Matrix, выборы | Этапы 6–8 ✅ |
-| **M3 Deep Modules** | 9–13 | Postmortem-2026, OSINT, медиа, Decision Lab, AI | Этапы 9–11 ✅ |
+| **M3 Deep Modules** | 9–13 | Postmortem-2026, OSINT, медиа, Decision Lab, AI | Этапы 9–12 ✅ |
 | **M4 Product Polish** | 14 | Премиум UX, целостность платформы | — |
 | **M5 Desktop Delivery** | 15–16 | Tauri Windows, Setup.exe, автообновления | — |
 | **M6 Hardening & Release** | 17–18 | Security audit, production audit, релиз | — |
@@ -437,6 +437,14 @@ Yabloko Policy Lab на позициях из Registry; сравнение сц�
 **DoD:** сценарий на fixture-данных: диапазоны p10/p50/p90, перечисление предположений;
 каузальные формулировки без методологии отсутствуют (линтер текстов шаблонов + ревью).
 
+**Статус: ✅ выполнен (2026-09-24).** Детерминированный Монте-Карло (2000 прогонов,
+mulberry32-seed) с формулировкой результата только «при предположениях… модель оценивает
+диапазон p10…p90»; прямой/косвенный/второй порядок; sensitivity p50 на границах
+параметров; исторический аналог в методологии каждого шаблона; SYNTHETIC-эластичности
+(grade D). Каузальный линтер (9 паттернов) на шаблонах при старте API + CHECK
+methodology ≥ 40 символов в схеме. Экраны DECISION LAB (пересчёт при смене параметра)
+и RESEARCH (цепочка CURRENT POSITION→…→ALTERNATIVES на позициях реестра).
+
 ## Этап 13 — AI Analyst
 
 **Цель:** YABLOKO ANALYST AI.
@@ -511,4 +519,5 @@ launch → login → analysis → export → update → uninstall; финаль�
 | 9. Post-Election 2026 | ✅ выполнен (postmortem, 4 несмешиваемых блока, авто-фаза, DATA QUALITY) |
 | 10. OSINT | ✅ выполнен (граф публичных сущностей, evidence-рёбра, CHECK приватности) |
 | 11. Media Intelligence | ✅ выполнен (модель публикации, ярлыки только с методологией, Media Monitor) |
-| 12–18 | — запланированы |
+| 12. Decision Lab / ALADDIN | ✅ выполнен (сценарный движок p10/p50/p90 «при предположениях…», каузальный линтер, Policy Lab на реестре позиций) |
+| 13–18 | — запланированы |

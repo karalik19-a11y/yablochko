@@ -1,0 +1,121 @@
+{
+  "meta": {
+    "note": "Decision Lab / ALADDIN (Этап 12): fixture-шаблоны сценариев. Три шаблона привязаны к официальным позициям реестра (Yabloko Policy Lab) + один свободный (baseline). Эластичности — модельные величины для демонстрации машины (SYNTHETIC, grade D), не результаты исследований; заменяются эластичностями с доверительными интервалами из литературы при наполнении. Все формулировки проходят каузальный линтер: только «при предположениях… модель оценивает диапазон…».",
+    "methodology": "Конвейер ALADDIN: POLICY (позиция/параметр) → ASSUMPTIONS (зафиксированный список) → HISTORICAL ANALOGUE (сравнительный кейс) → AFFECTED INDICATORS → BASELINE (regional_metrics) → COUNTERFACTUAL (сценарий с параметром) → MODEL (эластичность × нормированное отклонение, детерминированный Монте-Карло 2000 прогонов, шум ±30%, насыщение Σ√k по годам) → DIRECT/INDIRECT/SECOND-ORDER → SENSITIVITY (p50 на границах параметров) → UNCERTAINTY (p10/p50/p90) → EVIDENCE (ссылки на данные). Каузальные утверждения без методологии запрещены (лексический линтер + CHECK длины методологии в схеме).",
+    "model_disclaimer": "SYNTHETIC-эластичности для демонстрации интерфейса (grade D); модельная оценка диапазонов, не прогноз, не причинность и не рекомендация; никакой апологетики позиции."
+  },
+  "templates": [
+    {
+      "template_id": "tpl-poverty-support",
+      "title": "Сценарий поддержки доходов уязвимых групп (позиция: Свободы / социальное измерение)",
+      "description": "Модельная оценка диапазона изменения доли населения с доходами ниже границы бедности при изменении параметра адресной поддержки. При предположениях (фиксированные эластичности, прочие факторы неизменны) модель оценивает диапазоны — не обещание результата.",
+      "position_id": "pos-2026-svobody",
+      "target_metric": "inc_poverty_share",
+      "related_metrics": ["inc_per_capita_month", "med_life_expectancy"],
+      "analogue": {
+        "label": "Сравнительные кейсы адресной социальной поддержки в регионах",
+        "description": "SYNTHETIC-аналог: квазиэкспериментальное сопоставление регионов с разным уровнем поддержки (демонстрация метода)",
+        "period": "2019–2025"
+      },
+      "parameters": [
+        { "key": "support_intensity", "label": "Интенсивность адресной поддержки", "min": 0, "max": 100, "default": 50, "unit": "% диапазона" }
+      ],
+      "assumptions": [
+        "эластичность доли бедности по поддержке фиксирована (SYNTHETIC: −0.08 на полный диапазон параметра)",
+        "прочие факторы доходов неизменны в горизонте",
+        "административные издержки программы не учитываются",
+        "базовые линии — SYNTHETIC (grade D) до импорта Росстата"
+      ],
+      "elasticity": -0.08,
+      "indirect": [
+        { "metric": "inc_per_capita_month", "coefficient": 0.35 },
+        { "metric": "med_life_expectancy", "coefficient": 0.05 }
+      ],
+      "evidence_refs": ["regional_metrics:inc_poverty_share", "regional_metrics:inc_per_capita_month", "position:pos-2026-svobody"]
+    },
+    {
+      "template_id": "tpl-housing-renovation",
+      "title": "Сценарий модернизации жилищного фонда (позиция: Политические институты / МСУ)",
+      "description": "Модельная оценка диапазона изменения доли ветхого и аварийного жилья при изменении темпа модернизации. При предположениях (покрытие программой, прочее неизменно) модель оценивает диапазоны; косвенный канал — инвестиции на душу.",
+      "position_id": "pos-2026-demokratiya",
+      "target_metric": "hou_dilapidated_share",
+      "related_metrics": ["eco_invest_per_capita", "hou_per_capita_m2"],
+      "analogue": {
+        "label": "Сравнительные кейсы программ капремонта",
+        "description": "SYNTHETIC-аналог: сопоставление регионов с разной интенсивностью программ (демонстрация метода)",
+        "period": "2019–2025"
+      },
+      "parameters": [
+        { "key": "renovation_rate", "label": "Темп модернизации", "min": 0, "max": 100, "default": 40, "unit": "% диапазона" }
+      ],
+      "assumptions": [
+        "эластичность доли ветхого фонда по темпу модернизации фиксирована (SYNTHETIC: −0.11 на полный диапазон)",
+        "ввод нового жилья не меняется в горизонте",
+        "износ фонда продолжается по историческому среднему",
+        "базовые линии — SYNTHETIC (grade D)"
+      ],
+      "elasticity": -0.11,
+      "indirect": [
+        { "metric": "eco_invest_per_capita", "coefficient": 0.25 },
+        { "metric": "hou_per_capita_m2", "coefficient": 0.12 }
+      ],
+      "evidence_refs": ["regional_metrics:hou_dilapidated_share", "regional_metrics:eco_invest_per_capita", "position:pos-2026-demokratiya"]
+    },
+    {
+      "template_id": "tpl-healthcare-access",
+      "title": "Сценарий укомплектованности медицины (позиция: Мир / человеческое измерение)",
+      "description": "Модельная оценка диапазона изменения ожидаемой продолжительности жизни при изменении параметра укомплектованности врачами. При предположениях (связь через кадровую обеспеченность, прочее неизменно) модель оценивает диапазоны.",
+      "position_id": "pos-2026-mir",
+      "target_metric": "med_life_expectancy",
+      "related_metrics": ["med_doctors_per_10000", "med_beds_per_10000"],
+      "analogue": {
+        "label": "Сравнительные кейсы кадровых программ здравоохранения",
+        "description": "SYNTHETIC-аналог: межрегиональное сопоставление кадровой обеспеченности и продолжительности жизни (демонстрация метода)",
+        "period": "2019–2025"
+      },
+      "parameters": [
+        { "key": "staffing_level", "label": "Уровень укомплектованности", "min": 0, "max": 100, "default": 50, "unit": "% диапазона" }
+      ],
+      "assumptions": [
+        "эластичность продолжительности жизни по укомплектованности фиксирована (SYNTHETIC: +0.05 на полный диапазон)",
+        "структура заболеваемости неизменна в горизонте",
+        "эффект накапливается с насыщением (Σ√k)",
+        "базовые линии — SYNTHETIC (grade D)"
+      ],
+      "elasticity": 0.05,
+      "indirect": [
+        { "metric": "med_doctors_per_10000", "coefficient": 0.6 },
+        { "metric": "med_beds_per_10000", "coefficient": 0.2 }
+      ],
+      "evidence_refs": ["regional_metrics:med_life_expectancy", "regional_metrics:med_doctors_per_10000", "position:pos-2026-mir"]
+    },
+    {
+      "template_id": "tpl-migration-baseline",
+      "title": "Базовая линия миграционного прироста (свободный сценарий)",
+      "description": "Свободный сценарий без политики: базовая линия миграционного прироста при изменении параметра экономической привлекательности. При предположениях модель оценивает диапазоны; используется как baseline для сравнения с policy-сценариями.",
+      "position_id": null,
+      "target_metric": "mig_net",
+      "related_metrics": ["labor_unemployment_rate", "inc_avg_wage_month"],
+      "analogue": {
+        "label": "Межрегиональная миграция: сравнительные кейсы",
+        "description": "SYNTHETIC-аналог: связь миграционного прироста с рынком труда (демонстрация метода)",
+        "period": "2019–2025"
+      },
+      "parameters": [
+        { "key": "attractiveness", "label": "Экономическая привлекательность", "min": 0, "max": 100, "default": 50, "unit": "% диапазона" }
+      ],
+      "assumptions": [
+        "эластичность миграционного прироста по привлекательности фиксирована (SYNTHETIC: +0.15 на полный диапазон)",
+        "демографическая структура неизменна",
+        "жилищные ограничения не учитываются",
+        "базовые линии — SYNTHETIC (grade D)"
+      ],
+      "elasticity": 0.15,
+      "indirect": [
+        { "metric": "labor_unemployment_rate", "coefficient": 0.2 },
+        { "metric": "inc_avg_wage_month", "coefficient": 0.3 }
+      ],
+      "evidence_refs": ["regional_metrics:mig_net", "regional_metrics:labor_unemployment_rate"]
+    }
+  ]
+}

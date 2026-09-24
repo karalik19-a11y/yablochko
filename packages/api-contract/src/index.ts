@@ -11,6 +11,7 @@ export * from './elections.js';
 export * from './postmortem.js';
 export * from './osint.js';
 export * from './media.js';
+export * from './decision.js';
 
 /** Маршруты API v1 (единый источник истины для клиента и сервера). */
 export const API = {
@@ -50,5 +51,8 @@ export const API = {
   mediaMentions: '/api/v1/media/mentions',
   mediaTopics: '/api/v1/media/topics',
   mediaTrend: '/api/v1/media/trend',
-  mediaSources: '/api/v1/media/sources'
+  mediaSources: '/api/v1/media/sources',
+  decisionTemplates: '/api/v1/decision/templates',
+  decisionCompute: '/api/v1/decision/compute',
+  decisionScenarios: '/api/v1/decision/scenarios'
 } as const;

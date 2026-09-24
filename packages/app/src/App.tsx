@@ -19,6 +19,8 @@ import { ElectionsScreen } from './screens/Elections.js';
 import { PostmortemScreen } from './screens/Postmortem.js';
 import { OsintScreen } from './screens/Osint.js';
 import { MediaScreen } from './screens/Media.js';
+import { DecisionLabScreen } from './screens/DecisionLab.js';
+import { ResearchScreen } from './screens/Research.js';
 
 const IMPLEMENTED = new Set([
   'overview',
@@ -35,7 +37,9 @@ const IMPLEMENTED = new Set([
   'elections',
   'postmortem',
   'osint',
-  'media'
+  'media',
+  'decision-lab',
+  'research'
 ]);
 
 export function App() {
@@ -104,6 +108,8 @@ export function App() {
         {route === 'postmortem' && <PostmortemScreen />}
         {route === 'osint' && <OsintScreen />}
         {route === 'media' && <MediaScreen />}
+        {route === 'decision-lab' && <DecisionLabScreen />}
+        {route === 'research' && <ResearchScreen />}
         {route === 'yabloko-position' && <PositionsScreen />}
         {route === 'organization' && <OrganizationScreen />}
         {route === 'sources' && <SourcesScreen />}

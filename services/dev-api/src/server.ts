@@ -16,6 +16,7 @@ const { app } = await buildApp({
   postmortemDatasetPath: process.env.POSTMORTEM_DATASET ?? resolve(repoRoot, 'datasets/elections/postmortem.json'),
   osintGraphPath: process.env.OSINT_GRAPH ?? resolve(repoRoot, 'datasets/osint/osint_graph.json'),
   mediaDatasetPath: process.env.MEDIA_DATASET ?? resolve(repoRoot, 'datasets/media/media.json'),
+  scenarioTemplatesPath: process.env.SCENARIO_TEMPLATES ?? resolve(repoRoot, 'datasets/decision/scenario_templates.json'),
   staticDir: process.env.STATIC_DIR ?? resolve(repoRoot, 'apps/web-dev/dist'),
   version: '0.2.0',
   stage: 2,
