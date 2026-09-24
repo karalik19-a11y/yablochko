@@ -23,7 +23,8 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22.13
+          node-version: '22'
+          # node:sqlite требует сборки с FTS5 (есть в свежих 22.x, нет в 22.13)
           cache: npm
 
       - uses: dtolnay/rust-toolchain@stable
