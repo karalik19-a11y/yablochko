@@ -196,5 +196,23 @@
     },
     "status": "active",
     "update_policy": "Отключается при первом реальном импорте Росстата по соответствующим метрикам; пометка SYNTHETIC снимается автоматически при замене данных"
+  },
+  {
+    "source_id": "synthetic-civic",
+    "name": "SYNTHETIC-генератор агрегатов Civic Intelligence",
+    "owner": "YABLOKO INTELLIGENCE (internal)",
+    "url": null,
+    "source_type": "synthetic",
+    "license": "internal",
+    "collection_method": "deterministic_generator",
+    "coverage": "Агрегаты настроений по 14 темам × 98 гео-уровней × 33 месяца (2024-01…2026-09)",
+    "period": "2024-01…2026-09",
+    "update_frequency": "on_seed",
+    "reliability": {
+      "grade": "D",
+      "note": "СИНТЕТИЧЕСКИЕ агрегаты (ADR-0005): детерминированный генератор тест-данных, НЕ реальные настроения. Заменяются реальным pipeline (открытые данные, опросы) при подключении источников Этапов 6–11."
+    },
+    "status": "active",
+    "update_policy": "Отключается при первом реальном импорте настроений; пометка SYNTHETIC снимается автоматически"
   }
 ]

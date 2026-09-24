@@ -10,6 +10,7 @@ const { app } = await buildApp({
   datasetsDir: process.env.DATASETS_DIR ?? resolve(repoRoot, 'datasets/party'),
   geoDatasetPath: process.env.GEO_DATASET ?? resolve(repoRoot, 'datasets/geo/rf.json'),
   metricsCatalogPath: process.env.METRICS_CATALOG ?? resolve(repoRoot, 'datasets/metrics/catalog.json'),
+  civicTopicsPath: process.env.CIVIC_TOPICS ?? resolve(repoRoot, 'datasets/civic/topics.json'),
   staticDir: process.env.STATIC_DIR ?? resolve(repoRoot, 'apps/web-dev/dist'),
   version: '0.2.0',
   stage: 2,

@@ -1,0 +1,483 @@
+{
+  "meta": {
+    "note": "Справочник общественно значимых тем (мастер-список Issue Tracker) + параметры SYNTHETIC-генератора агрегатов (ADR-0005). keywords — словарь для TOPIC EXTRACTION реального pipeline (word-stem matching). synthetic.shares — базовые доли sentiment для генератора тест-агрегатов; значения вымышлены, порядок величин правдоподобен.",
+    "methodology": "Методология Civic Sentiment Engine: RAW TEXT → LANGUAGE DETECTION (кириллица ≥50% букв) → CLEANING → DEDUPLICATION (нормализованный текст) → PII REDACTION (телефоны, email, карты, паспорта, адреса, ФИО по отчеству, URL) → TOPIC EXTRACTION (словарь стемов, multi-label) → SENTIMENT (встроенный русский лексикон с обработкой отрицания «не/нет/без» в окне 2 слова; классы Positive/Neutral/Negative/Mixed/Unclear) → QUESTION STANCE → AGGREGATION (только агрегаты по geo_id × topic × месяц) → TIME SERIES → GEO AGGREGATION. Персональные записи не хранятся.",
+    "k_min": 30,
+    "sentiment_lexicon_note": "Классификатор — детерминированный лексиконный (не ML); методология фиксируется в method_ref каждой агрегатной строки. Замена на уточнённую модель — с изменением method_ref и полным пересчётом рядов."
+  },
+  "topics": [
+    {
+      "topic_id": "prices",
+      "name": "Цены",
+      "category": "economy",
+      "keywords": [
+        "цен",
+        "подорожал",
+        "дороже",
+        "дорогой",
+        "инфляц",
+        "стоимост",
+        "тариф"
+      ],
+      "synthetic": {
+        "volume_country_month": 5200,
+        "ramp": {
+          "from": 1.0,
+          "to": 1.65
+        },
+        "shares": {
+          "pos": 0.06,
+          "neu": 0.24,
+          "neg": 0.55,
+          "mixed": 0.1,
+          "unclear": 0.05
+        },
+        "waves": []
+      }
+    },
+    {
+      "topic_id": "utilities",
+      "name": "ЖКХ",
+      "category": "economy",
+      "keywords": [
+        "жкх",
+        "отоплен",
+        "водоснабж",
+        "электроэнерг",
+        "квартплат",
+        "тариф",
+        "управляющ",
+        "домофон",
+        "мусоропровод",
+        "уборк"
+      ],
+      "synthetic": {
+        "volume_country_month": 6100,
+        "ramp": {
+          "from": 1.0,
+          "to": 1.15
+        },
+        "shares": {
+          "pos": 0.07,
+          "neu": 0.24,
+          "neg": 0.48,
+          "mixed": 0.14,
+          "unclear": 0.07
+        },
+        "waves": [
+          {
+            "months": [
+              10,
+              11,
+              12,
+              1,
+              2,
+              3
+            ],
+            "factor": 1.4
+          }
+        ]
+      }
+    },
+    {
+      "topic_id": "transport",
+      "name": "Транспорт",
+      "category": "urban",
+      "keywords": [
+        "транспорт",
+        "автобус",
+        "трамва",
+        "троллейбус",
+        "маршрутк",
+        "метро",
+        "электричк",
+        "пробк",
+        "парковк",
+        "проезд",
+        "дорог"
+      ],
+      "synthetic": {
+        "volume_country_month": 3400,
+        "ramp": {
+          "from": 1.0,
+          "to": 1.1
+        },
+        "shares": {
+          "pos": 0.14,
+          "neu": 0.3,
+          "neg": 0.38,
+          "mixed": 0.11,
+          "unclear": 0.07
+        },
+        "waves": []
+      }
+    },
+    {
+      "topic_id": "ecology",
+      "name": "Экология",
+      "category": "urban",
+      "keywords": [
+        "эколог",
+        "мусор",
+        "свалк",
+        "переработ",
+        "выброс",
+        "загрязнен",
+        "воздух",
+        "полигон"
+      ],
+      "synthetic": {
+        "volume_country_month": 1900,
+        "ramp": {
+          "from": 1.0,
+          "to": 1.2
+        },
+        "shares": {
+          "pos": 0.16,
+          "neu": 0.33,
+          "neg": 0.34,
+          "mixed": 0.1,
+          "unclear": 0.07
+        },
+        "waves": []
+      }
+    },
+    {
+      "topic_id": "incomes",
+      "name": "Доходы",
+      "category": "economy",
+      "keywords": [
+        "доход",
+        "зарплат",
+        "пенси",
+        "пособи",
+        "выплат",
+        "бедност",
+        "матпомощь"
+      ],
+      "synthetic": {
+        "volume_country_month": 4200,
+        "ramp": {
+          "from": 1.0,
+          "to": 1.35
+        },
+        "shares": {
+          "pos": 0.09,
+          "neu": 0.26,
+          "neg": 0.47,
+          "mixed": 0.12,
+          "unclear": 0.06
+        },
+        "waves": []
+      }
+    },
+    {
+      "topic_id": "jobs",
+      "name": "Работа",
+      "category": "economy",
+      "keywords": [
+        "работ",
+        "ваканси",
+        "увол",
+        "сокращ",
+        "безработиц",
+        "трудоустрой",
+        "подработк"
+      ],
+      "synthetic": {
+        "volume_country_month": 2800,
+        "ramp": {
+          "from": 1.0,
+          "to": 0.95
+        },
+        "shares": {
+          "pos": 0.15,
+          "neu": 0.31,
+          "neg": 0.34,
+          "mixed": 0.12,
+          "unclear": 0.08
+        },
+        "waves": []
+      }
+    },
+    {
+      "topic_id": "healthcare",
+      "name": "Медицина",
+      "category": "social",
+      "keywords": [
+        "медиц",
+        "поликлин",
+        "больниц",
+        "врач",
+        "фельдшер",
+        "лекарств",
+        "лечение",
+        "ОМС",
+        "запис к врачу",
+        "скорая"
+      ],
+      "synthetic": {
+        "volume_country_month": 4600,
+        "ramp": {
+          "from": 1.0,
+          "to": 1.1
+        },
+        "shares": {
+          "pos": 0.12,
+          "neu": 0.26,
+          "neg": 0.44,
+          "mixed": 0.12,
+          "unclear": 0.06
+        },
+        "waves": []
+      }
+    },
+    {
+      "topic_id": "education",
+      "name": "Образование",
+      "category": "social",
+      "keywords": [
+        "образован",
+        "школ",
+        "учител",
+        "детсад",
+        "садик",
+        "вуз",
+        "университет",
+        "егэ",
+        "еге",
+        "учеб"
+      ],
+      "synthetic": {
+        "volume_country_month": 3000,
+        "ramp": {
+          "from": 1.0,
+          "to": 1.05
+        },
+        "shares": {
+          "pos": 0.17,
+          "neu": 0.33,
+          "neg": 0.3,
+          "mixed": 0.12,
+          "unclear": 0.08
+        },
+        "waves": [
+          {
+            "months": [
+              8,
+              9
+            ],
+            "factor": 1.25
+          }
+        ]
+      }
+    },
+    {
+      "topic_id": "housing",
+      "name": "Жильё",
+      "category": "urban",
+      "keywords": [
+        "жиль",
+        "квартир",
+        "ипотек",
+        "новостройк",
+        "аренд",
+        "рассел",
+        "капремонт"
+      ],
+      "synthetic": {
+        "volume_country_month": 3600,
+        "ramp": {
+          "from": 1.0,
+          "to": 1.25
+        },
+        "shares": {
+          "pos": 0.1,
+          "neu": 0.28,
+          "neg": 0.44,
+          "mixed": 0.12,
+          "unclear": 0.06
+        },
+        "waves": []
+      }
+    },
+    {
+      "topic_id": "corruption",
+      "name": "Коррупция",
+      "category": "governance",
+      "keywords": [
+        "коррупц",
+        "взяточ",
+        "взятк",
+        "откат",
+        "воровств",
+        "хищени",
+        "нецелев"
+      ],
+      "synthetic": {
+        "volume_country_month": 2400,
+        "ramp": {
+          "from": 1.0,
+          "to": 0.9
+        },
+        "shares": {
+          "pos": 0.05,
+          "neu": 0.22,
+          "neg": 0.58,
+          "mixed": 0.1,
+          "unclear": 0.05
+        },
+        "waves": [
+          {
+            "months": [
+              6,
+              7,
+              8,
+              9
+            ],
+            "factor": 0.62
+          }
+        ]
+      }
+    },
+    {
+      "topic_id": "local_gov",
+      "name": "Местное самоуправление",
+      "category": "governance",
+      "keywords": [
+        "муниципал",
+        "администрац",
+        "депутат",
+        "местн самоуправ",
+        "тос",
+        "публичн слушан",
+        "благоустрой"
+      ],
+      "synthetic": {
+        "volume_country_month": 1100,
+        "ramp": {
+          "from": 1.0,
+          "to": 1.3
+        },
+        "shares": {
+          "pos": 0.12,
+          "neu": 0.34,
+          "neg": 0.34,
+          "mixed": 0.13,
+          "unclear": 0.07
+        },
+        "waves": [
+          {
+            "months": [
+              9
+            ],
+            "factor": 1.45
+          }
+        ]
+      }
+    },
+    {
+      "topic_id": "foreign_policy",
+      "name": "Внешняя политика",
+      "category": "politics",
+      "keywords": [
+        "внешн политик",
+        "санкц",
+        "дипломат",
+        "международ",
+        "переговор"
+      ],
+      "synthetic": {
+        "volume_country_month": 2100,
+        "ramp": {
+          "from": 1.0,
+          "to": 1.2
+        },
+        "shares": {
+          "pos": 0.11,
+          "neu": 0.36,
+          "neg": 0.33,
+          "mixed": 0.14,
+          "unclear": 0.06
+        },
+        "waves": [
+          {
+            "months": [
+              7,
+              8,
+              9
+            ],
+            "factor": 1.55
+          }
+        ]
+      }
+    },
+    {
+      "topic_id": "peace",
+      "name": "Мир",
+      "category": "politics",
+      "keywords": [
+        "мир",
+        "перемири",
+        "прекращен огня",
+        "войн",
+        "боев",
+        "мобилиз"
+      ],
+      "synthetic": {
+        "volume_country_month": 3300,
+        "ramp": {
+          "from": 1.0,
+          "to": 1.5
+        },
+        "shares": {
+          "pos": 0.14,
+          "neu": 0.34,
+          "neg": 0.3,
+          "mixed": 0.16,
+          "unclear": 0.06
+        },
+        "waves": [
+          {
+            "months": [
+              5,
+              6,
+              7,
+              8
+            ],
+            "factor": 1.35
+          }
+        ]
+      }
+    },
+    {
+      "topic_id": "human_rights",
+      "name": "Права человека",
+      "category": "politics",
+      "keywords": [
+        "права человек",
+        "свобод",
+        "репресс",
+        "политзаключен",
+        "цензур",
+        "преследован",
+        "адвокат"
+      ],
+      "synthetic": {
+        "volume_country_month": 1300,
+        "ramp": {
+          "from": 1.0,
+          "to": 1.25
+        },
+        "shares": {
+          "pos": 0.1,
+          "neu": 0.3,
+          "neg": 0.38,
+          "mixed": 0.16,
+          "unclear": 0.06
+        },
+        "waves": []
+      }
+    }
+  ]
+}

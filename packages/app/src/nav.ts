@@ -19,7 +19,7 @@ export const NAV: NavItem[] = [
   { key: 'population', label: 'Население', group: 'Анализ', stage: null, description: 'Population Intelligence: демография и показатели (SYNTHETIC до импорта Росстата)' },
   { key: 'economy', label: 'Экономика', group: 'Анализ', stage: null, description: 'Экономика, доходы, занятость, бизнес (SYNTHETIC до импорта)' },
   { key: 'society', label: 'Общество', group: 'Анализ', stage: null, description: 'Здравоохранение, образование, жильё, миграция (SYNTHETIC)' },
-  { key: 'civic-trends', label: 'Общественные настроения', group: 'Темы и позиции', stage: 6, description: 'Civic Sentiment Engine — только агрегаты (Этап 6)' },
+  { key: 'civic-trends', label: 'Общественные настроения', group: 'Темы и позиции', stage: null, description: 'Civic Sentiment Engine: только агрегаты, k-анонимность, SYNTHETIC (Этап 6)' },
   { key: 'issues', label: 'Проблемы (Issues)', group: 'Темы и позиции', stage: 6, description: 'Issue Tracker: растущие и затухающие темы (Этап 6)' },
   { key: 'yabloko-position', label: 'Позиция «Яблока»', group: 'Темы и позиции', stage: null, description: 'Реестр позиций партии; матрица с общественным мнением — Этап 7' },
   { key: 'elections', label: 'Выборы', group: 'Электорат', stage: 8, description: 'Election Intelligence: база выборов и результатов (Этап 8)' },

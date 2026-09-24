@@ -13,7 +13,7 @@
 |---|---|---|---|
 | **M0 Foundation** | 1–3 | Аудит + ядро Party Context + Source Registry / ingestion | Этапы 1–3 ✅ |
 | **M1 Data Spine** | 4–5 | География, показатели территорий | Этапы 4–5 ✅ |
-| **M2 Analytics Core** | 6–8 | Настроения, Position Matrix, выборы | — |
+| **M2 Analytics Core** | 6–8 | Настроения, Position Matrix, выборы | Этап 6 ✅ |
 | **M3 Deep Modules** | 9–13 | Postmortem-2026, OSINT, медиа, Decision Lab, AI | — |
 | **M4 Product Polish** | 14 | Премиум UX, целостность платформы | — |
 | **M5 Desktop Delivery** | 15–16 | Tauri Windows, Setup.exe, автообновления | — |
@@ -187,7 +187,7 @@ income, housing; seed-данные SYNTHETIC + импортёр Росстата
   build ✅, runtime: каталог 28 метрик, СПб 9 доменов, слой карты 89 значений,
   trust-цепочка, compare по СЗФО ✅.
 
-## Этап 6 — Civic Intelligence
+## Этап 6 — Civic Intelligence ✅ (выполнен 2026-09-24)
 
 **Цель:** агрегированные настроения.
 **Объём:** справочник тем; sentiment pipeline (aggregate-only) с PII scrubber;
@@ -195,6 +195,46 @@ income, housing; seed-данные SYNTHETIC + импортёр Росстата
 Positive/Neutral/Negative/Mixed/Unclear, sample size, INSUFFICIENT DATA при малых n.
 **DoD:** тест PII scrubber (фикстуры с PII не попадают в хранилище); агрегаты
 корректны; запрет персональных записей закреплён тестом схемы.
+
+**Результат:**
+- Миграция 005: `topics` (справочник тем), `civic_aggregates` — ТОЛЬКО агрегаты:
+  в схеме нет текстовых колонок; CHECK `n_messages = pos+neu+neg+mixed+unclear`;
+  UNIQUE(geo, topic, period, source); `civic_batches` (статистика батчей, без текстов);
+  `pii_log` (только kind/action/count). Персональные записи отсутствуют архитектурно.
+- Справочник 14 тем (`datasets/civic/topics.json`): цены, ЖКХ, транспорт, экология,
+  доходы, работа, медицина, образование, жильё, коррупция, МСУ, внешняя политика,
+  мир, права человека; keywords + SYNTHETIC-конфиги (объём/тренд/сезонные волны/
+  доли тональности); k_min = 30; meta.methodology — полный текст pipeline.
+- Pipeline (`packages/ingest/civic.ts`, чистые функции): LANGUAGE DETECTION
+  (кириллица ≥50% букв, short-фильтр) → CLEANING → DEDUPLICATION (нормализованный
+  текст) → PII REDACTION (8 паттернов: телефон/email/паспорт/карта/СНИЛС/
+  имя-отчество/адрес/URL → `[REDACTED:KIND]`; журнал — только вид и количество) →
+  TOPIC EXTRACTION (multi-label) → SENTIMENT (лексикон ~90+/90− стемов, отрицание
+  в окне 2 слова, Mixed 1:3…3:1, Unclear <3 слов) → QUESTION STANCE → AGGREGATION.
+  Страж-тест: в результате pipeline нет ни одного текстового поля/исходного текста.
+- Хранилище и derivations (`packages/data-access/civic.ts`): детерминированный
+  SYNTHETIC-генератор (регион-фактор 0.25–2.2, джиттер ±3%, allocate наибольших
+  остатков — суммы ровно n); `aggregateCivicUp` (ФО/страна = Σ субъектов, иерархия
+  передаётся явно); upsert-хранение (idempotency); `getCivicOverview` — окно 3–36
+  мес, месячные ряды, last3/prev3, классификация new/rising(≥+25%)/declining(≤−25%)/
+  stable, INSUFFICIENT при last3 < k_min.
+- API `GET /api/v1/civic/overview?geo=&months=`: только агрегаты; валидация geo
+  (regex stable-id, инъекции → 404); meta-warning «тексты и персональные записи
+  отсутствуют в схеме».
+- Экран CIVIC TRENDS: гео-селектор (Россия/ФО/субъекты), окно 6/12/24/36 мес,
+  KPI (last3, активные/растущие/новые темы), таблица тем — объём last3, тренд-
+  констатация, бейдж класса, спарклайн 12 мес, стек тональности, «Детали» с
+  месячными барами; INSUFFICIENT DATA приглушает строку; бейдж SYNTHETIC;
+  панель METHODOLOGY (pipeline + этика: профили частных лиц не создаются).
+- Territory Profile: раздел PUBLIC CONCERNS — топ-5 тем территории с классом
+  тренда и переходом в CIVIC TRENDS (раньше срока — было INSUFFICIENT).
+- Источник `synthetic-civic` (grade D) в Source Registry: «отключается при первом
+  реальном импорте настроений».
+- Проверено: Vitest 97/97 (pipeline: отрицание/PII по видам/дедуп/язык/multi-label/
+  страж отсутствия текстов; репо: детерминизм, согласованность ФО=Σ субъектов,
+  idempotency, CHECK-схема, классификации/insufficient; интеграция контракта),
+  lint/typecheck/build ✅, runtime: страна 14 тем (rising +55% foreign_policy,
+  declining −31% corruption), Сахалин 6 тем INSUFFICIENT, инъекция → 404 ✅.
 
 ## Этап 7 — YABLOKO Position Matrix
 
@@ -320,5 +360,5 @@ launch → login → analysis → export → update → uninstall; финаль�
 | 3. Источники России | ✅ завершён (2026-09-24) |
 | 4. Географическая база | ✅ завершён (2026-09-24) |
 | 5. Population Intelligence | ✅ завершён (2026-09-24) |
-| 6. Civic Intelligence | ⏭ следующий |
+| 6. Civic Intelligence | ✅ выполнен (агрегат-only pipeline, k-анонимность, CIVIC TRENDS) |
 | 7–18 | — запланированы |

@@ -11,7 +11,8 @@ import {
   MetricsCatalog,
   MetricMapValues,
   TerritoryMetrics,
-  TrustChain
+  TrustChain,
+  CivicOverview
 } from '@yabloko/api-contract';
 import { z } from 'zod';
 
@@ -31,7 +32,8 @@ async function withApp(fn: (app: Awaited<ReturnType<typeof buildApp>>['app']) =>
     stageName: 'test',
     disableJobs: true,
     geoDatasetPath: resolve(process.cwd(), 'datasets/geo/rf.json'),
-    metricsCatalogPath: resolve(process.cwd(), 'datasets/metrics/catalog.json')
+    metricsCatalogPath: resolve(process.cwd(), 'datasets/metrics/catalog.json'),
+    civicTopicsPath: resolve(process.cwd(), 'datasets/civic/topics.json')
   });
   try {
     await fn(handle.app);
@@ -115,6 +117,58 @@ describe('dev-api (интеграция контракта)', () => {
       expect(bad.statusCode).toBe(404);
     });
   }, 20000);
+
+  it('civic/overview: агрегаты настроек по контракту, INSUFFICIENT при малых n, страж без гео-инъекций', async () => {
+    await withApp(async (app) => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `${API.civicOverview}?geo=${encodeURIComponent('ru:subject:spe')}&months=12`
+      });
+      expect(res.statusCode).toBe(200);
+      const ov = Envelope(CivicOverview).parse(res.json()).data;
+      expect(ov.geo_id).toBe('ru:subject:spe');
+      expect(ov.k_min).toBe(30);
+      expect(ov.window_months).toBe(12);
+      expect(ov.data_mode).toBe('SYNTHETIC');
+      expect(ov.methodology).toContain('Методология Civic Sentiment Engine');
+      expect(ov.topics.length).toBeGreaterThan(0);
+      for (const t of ov.topics) {
+        expect(t.months).toHaveLength(12);
+        expect(['rising', 'declining', 'new', 'stable']).toContain(t.classification);
+        // k-анонимность: insufficient согласован с k_min
+        expect(t.insufficient).toBe(t.last3_n < ov.k_min);
+        // mix не может быть противоречивым
+        expect(t.totals.mix.pos + t.totals.mix.neu + t.totals.mix.neg + t.totals.mix.mixed + t.totals.mix.unclear)
+          .toBe(t.totals.n);
+      }
+      // GEO-агрегация: страна ≥ суммы двух субъектов (полная Σ из 89 покрыта repo-тестом)
+      const country = await app.inject({
+        method: 'GET',
+        url: `${API.civicOverview}?geo=${encodeURIComponent('ru:country:ru')}&months=3`
+      });
+      const cov = Envelope(CivicOverview).parse(country.json()).data;
+      const pricesCountry = cov.topics.find((t) => t.topic_id === 'prices');
+      expect(pricesCountry).toBeDefined();
+      const lastPeriod = pricesCountry!.months[pricesCountry!.months.length - 1]!.period;
+      const countryN = pricesCountry!.months.find((mm) => mm.period === lastPeriod)?.n ?? 0;
+      let sum2 = 0;
+      for (const geoSuffix of ['spe', 'mow']) {
+        const r = await app.inject({
+          method: 'GET',
+          url: `${API.civicOverview}?geo=${encodeURIComponent(`ru:subject:${geoSuffix}`)}&months=3`
+        });
+        const o = Envelope(CivicOverview).parse(r.json()).data;
+        const p = o.topics.find((t) => t.topic_id === 'prices');
+        sum2 += p?.months.find((mm) => mm.period === lastPeriod)?.n ?? 0;
+      }
+      expect(countryN).toBeGreaterThanOrEqual(sum2);
+      expect(countryN).toBeGreaterThan(0);
+
+      // валидация: некорректный geo → 404
+      const bad = await app.inject({ method: 'GET', url: `${API.civicOverview}?geo=javascript:alert(1)` });
+      expect(bad.statusCode).toBe(404);
+    });
+  });
 
   it('неизвестный API-маршрут — 404 JSON', async () => {
     await withApp(async (app) => {

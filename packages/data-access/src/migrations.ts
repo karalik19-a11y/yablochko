@@ -347,6 +347,73 @@ CREATE TABLE metrics_domains (
   sort_order INTEGER NOT NULL DEFAULT 0
 );
 `
+  },
+  {
+    id: 5,
+    name: '005_civic_intelligence',
+    sql: `
+-- Справочник общественно значимых тем (мастер-список)
+CREATE TABLE topics (
+  topic_id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  category TEXT,
+  keywords_json TEXT NOT NULL,
+  sort_order INTEGER NOT NULL DEFAULT 0
+);
+
+-- ТОЛЬКО агрегаты. Персональные записи (сообщения/профили) в схеме
+-- отсутствуют архитектурно; CHECK гарантирует согласованность mix.
+CREATE TABLE civic_aggregates (
+  aggregate_id TEXT PRIMARY KEY,
+  geo_id TEXT NOT NULL REFERENCES geography(geo_id),
+  topic_id TEXT NOT NULL REFERENCES topics(topic_id),
+  period TEXT NOT NULL,
+  n_messages INTEGER NOT NULL,
+  n_positive INTEGER NOT NULL,
+  n_neutral INTEGER NOT NULL,
+  n_negative INTEGER NOT NULL,
+  n_mixed INTEGER NOT NULL,
+  n_unclear INTEGER NOT NULL,
+  n_questions INTEGER NOT NULL,
+  source_id TEXT NOT NULL REFERENCES sources(source_id),
+  method_ref TEXT,
+  data_mode TEXT NOT NULL DEFAULT 'SYNTHETIC',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE(geo_id, topic_id, period, source_id),
+  CHECK (n_messages >= 0 AND n_messages = n_positive + n_neutral + n_negative + n_mixed + n_unclear)
+);
+CREATE INDEX idx_civic_geo_topic ON civic_aggregates(geo_id, topic_id, period);
+CREATE INDEX idx_civic_period ON civic_aggregates(period);
+
+-- Журнал батчей pipeline (статистика обработки; тексты НЕ хранятся)
+CREATE TABLE civic_batches (
+  batch_id TEXT PRIMARY KEY,
+  source_id TEXT NOT NULL REFERENCES sources(source_id),
+  geo_scope TEXT,
+  period_from TEXT,
+  period_to TEXT,
+  n_in INTEGER NOT NULL,
+  n_after_language INTEGER NOT NULL,
+  n_after_dedup INTEGER NOT NULL,
+  n_after_pii INTEGER NOT NULL,
+  pii_json TEXT,
+  n_uncategorized INTEGER NOT NULL,
+  n_stored INTEGER NOT NULL,
+  stats_json TEXT,
+  created_at TEXT NOT NULL
+);
+
+-- Журнал отбраковки/редактирования PII (вид и количество; без текстов)
+CREATE TABLE pii_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  batch_id TEXT NOT NULL REFERENCES civic_batches(batch_id),
+  kind TEXT NOT NULL,
+  action TEXT NOT NULL,
+  count INTEGER NOT NULL,
+  at TEXT NOT NULL
+);
+`
   }
 ];
 

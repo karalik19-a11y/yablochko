@@ -26,6 +26,13 @@ import {
   compareSubjects,
   getTrustChain,
   syntheticMetricsPresent,
+  loadCivicTopics,
+  seedCivicTopics,
+  generateSyntheticCivic,
+  aggregateCivicUp,
+  storeCivicAggregates,
+  syntheticCivicPresent,
+  getCivicOverview,
   getPartyContext,
   listPositionsComputed,
   listDocuments,
@@ -61,8 +68,11 @@ export interface AppOptions {
   datasetsDir: string;
   geoDatasetPath?: string;
   metricsCatalogPath?: string;
+  civicTopicsPath?: string;
   /** Отключить генерацию SYNTHETIC-метрик. */
   disableSyntheticMetrics?: boolean;
+  /** Отключить генерацию SYNTHETIC-агрегатов настроений. */
+  disableSyntheticCivic?: boolean;
   staticDir?: string;
   version: string;
   stage: number;
@@ -129,6 +139,7 @@ export async function buildApp(opts: AppOptions): Promise<AppHandle> {
   await app.register(cors, { origin: true });
 
   // --- База данных: migrate + seed (идемпотентно) ---
+  let civicMethodology = '';
   const db = openDb(opts.dbPath);
   const mig = migrate(db);
   if (mig.appliedIds.length > 0) {
@@ -152,6 +163,41 @@ export async function buildApp(opts: AppOptions): Promise<AppHandle> {
       }));
       const rows = generateSyntheticMetrics(catalog, subjects, districts, rf.country.geo_id);
       storeMetrics(db, { rows, sourceId: 'synthetic-demo', dataMode: 'SYNTHETIC' });
+    }
+  }
+  if (opts.civicTopicsPath) {
+    const civic = loadCivicTopics(opts.civicTopicsPath);
+    seedCivicTopics(db, civic);
+    civicMethodology = civic.meta.methodology;
+    if (!opts.disableSyntheticCivic && !syntheticCivicPresent(db)) {
+      const rf = loadRfGeoFile(opts.geoDatasetPath ?? resolvePath(repoRootGuess(), 'datasets/geo/rf.json'));
+      const subjects = rf.subjects.map((s0) => ({ geo_id: s0.geo_id }));
+      // 33 месяца: 2024-01 … 2026-09
+      const months: string[] = [];
+      for (let y = 2024; y <= 2026; y++) {
+        for (let m = 1; m <= 12; m++) {
+          const p = `${y}-${String(m).padStart(2, '0')}`;
+          if (p >= '2024-01' && p <= '2026-09') months.push(p);
+        }
+      }
+      const subjectRows = generateSyntheticCivic(civic, subjects, months);
+      // ФО и страна: агрегация сверху (иерархия передаётся явно)
+      const fdMembers = new Map<string, string[]>();
+      for (const s0 of rf.subjects) {
+        const fd = `ru:fd:${s0.fd}`;
+        const arr = fdMembers.get(fd) ?? [];
+        arr.push(s0.geo_id);
+        fdMembers.set(fd, arr);
+      }
+      const groups = [...fdMembers.entries()].map(([geo_id, members]) => ({ geo_id, members }));
+      groups.push({ geo_id: rf.country.geo_id, members: rf.subjects.map((s0) => s0.geo_id) });
+      const upRows = aggregateCivicUp(subjectRows, groups);
+      const civicMethodRef =
+        'synthetic/civic-v1: детерминированный генератор агрегатов (объём темы × регион-фактор × шум, ' +
+        'sentiment-доли из topics.json с джиттером ±3%); НЕ реальные сообщения; ' +
+        'pipeline-методология: ' + civic.meta.methodology;
+      storeCivicAggregates(db, subjectRows, { sourceId: 'synthetic-civic', methodRef: civicMethodRef });
+      storeCivicAggregates(db, upRows, { sourceId: 'synthetic-civic', methodRef: civicMethodRef });
     }
   }
 
@@ -339,6 +385,22 @@ export async function buildApp(opts: AppOptions): Promise<AppHandle> {
       return {
         data: chain,
         meta: metaFor('SEED', ['Цепочка доказательств: VALUE → DATASET → SOURCE → METHODOLOGY.'])
+      };
+    },
+    civicOverview: (q: Record<string, string>) => {
+      const geo = String(q.geo ?? '');
+      if (!geo || !/^ru:[a-z_]+:[a-z0-9-_]+$/i.test(geo)) return null;
+      const monthsRaw = Number(q.months ?? 12);
+      const months = Number.isFinite(monthsRaw) ? Math.min(Math.max(Math.round(monthsRaw), 3), 36) : 12;
+      const overview = getCivicOverview(db, geo, { months, methodology: civicMethodology });
+      if (!overview) return null;
+      return {
+        data: overview,
+        meta: metaFor('SEED', [
+          'Настроения — SYNTHETIC-агрегаты (тест-генератор), не реальные сообщения.',
+          'Только агрегаты: тексты и персональные записи отсутствуют в схеме (k-анонимность k_min=' + String(overview.k_min) + ').',
+          'Классификация тренда — констатация изменения объёма, не оценка.'
+        ])
       };
     },
     territory: (geoId: string) => {

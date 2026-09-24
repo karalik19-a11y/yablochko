@@ -14,6 +14,7 @@ import { PlaceholderScreen } from './screens/Placeholder.js';
 import { TerritoriesScreen } from './screens/Territories.js';
 import { TerritoryScreen } from './screens/Territory.js';
 import { MetricsExplorer } from './screens/MetricsExplorer.js';
+import { CivicTrendsScreen } from './screens/CivicTrends.js';
 
 const IMPLEMENTED = new Set([
   'overview',
@@ -25,7 +26,8 @@ const IMPLEMENTED = new Set([
   'territories',
   'population',
   'economy',
-  'society'
+  'society',
+  'civic-trends'
 ]);
 
 export function App() {
@@ -89,6 +91,7 @@ export function App() {
             onNavigate={navigate}
           />
         )}
+        {route === 'civic-trends' && <CivicTrendsScreen />}
         {route === 'yabloko-position' && <PositionsScreen />}
         {route === 'organization' && <OrganizationScreen />}
         {route === 'sources' && <SourcesScreen />}

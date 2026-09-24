@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Badge, EmptyState, ErrorBox, Panel, Skeleton } from '@yabloko/ui';
 import { MetricRow } from '@yabloko/ui';
-import { API, Territory, TerritoryMetrics, TrustChain as TrustChainSchema } from '@yabloko/api-contract';
+import { API, Territory, TerritoryMetrics, TrustChain as TrustChainSchema, CivicOverview } from '@yabloko/api-contract';
 import type { MetricView } from '@yabloko/api-contract';
 import { useApi } from '../api/hooks.js';
 import { TrustBox } from '../components/TrustBox.js';
@@ -24,6 +24,10 @@ export function TerritoryScreen({
     TerritoryMetrics
   );
   const [trustReq, setTrustReq] = useState<{ geo: string; code: string } | null>(null);
+  const civic = useApi(
+    `${API.civicOverview}?geo=${encodeURIComponent(geoId)}&months=12`,
+    CivicOverview
+  );
   const trust = useApi(
     trustReq
       ? `${API.metricsTrust}?geo=${encodeURIComponent(trustReq.geo)}&code=${encodeURIComponent(trustReq.code)}`
@@ -143,6 +147,52 @@ export function TerritoryScreen({
       )}
 
       {t.sections.map((sec) => {
+        if (sec.key === 'public_concerns' && civic.status === 'ready' && civic.data && civic.data.topics.length > 0) {
+          const top5 = civic.data.topics.slice(0, 5);
+          return (
+            <Panel
+              key={sec.key}
+              title={sec.title}
+              actions={
+                <span className="small faint">
+                  только агрегаты · k_min={civic.data.k_min} ·{' '}
+                  <a href="#/civic-trends" style={{ color: 'var(--info)' }}>
+                    CIVIC TRENDS →
+                  </a>
+                </span>
+              }
+            >
+              {top5.map((c) => (
+                <div
+                  key={c.topic_id}
+                  style={{ display: 'grid', gridTemplateColumns: '1.4fr auto auto auto', gap: 12, alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--border)' }}
+                >
+                  <span className="small" style={{ fontWeight: 600 }}>{c.topic_name}</span>
+                  {c.insufficient ? (
+                    <span className="badge muted" title={`last3 = ${c.last3_n} < k_min (${civic.data!.k_min})`}>
+                      INSUFFICIENT DATA
+                    </span>
+                  ) : (
+                    <span className="mono small">{c.last3_n.toLocaleString('ru-RU')} /3 мес</span>
+                  )}
+                  <span
+                    className={`badge ${c.classification === 'rising' ? 'warn' : c.classification === 'declining' ? 'info' : c.classification === 'new' ? 'accent' : 'muted'}`}
+                    title="Констатация изменения объёма last3 vs prev3, не оценка"
+                  >
+                    {c.classification.toUpperCase()}
+                  </span>
+                  <span className="small faint">
+                    {c.growth_pct === null ? '—' : `${c.growth_pct > 0 ? '+' : ''}${c.growth_pct.toFixed(0)}%`}
+                  </span>
+                </div>
+              ))}
+              <div className="row wrap" style={{ marginTop: 8 }}>
+                <span className="badge warn" title="SYNTHETIC-агрегаты (ADR-0005), не реальные сообщения">SYNTHETIC</span>
+                <span className="small faint">Тональность и тексты сообщений не хранятся — только счётчики.</span>
+              </div>
+            </Panel>
+          );
+        }
         const ms = bySection.get(sec.title) ?? [];
         if (ms.length === 0) {
           return (

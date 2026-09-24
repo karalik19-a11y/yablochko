@@ -8,3 +8,4 @@ export * from './fixtures.js';
 export * from './jobs/partyContextRefresh.js';
 export * from './connectors/index.js';
 export * from './connectors/yablokoRu.js';
+export * from './civic.js';

@@ -35,6 +35,7 @@ export interface RouteDeps {
   metricsMap: (q: Record<string, string>) => unknown;
   metricsCompare: (q: Record<string, string>) => unknown;
   metricsTrust: (q: Record<string, string>) => unknown;
+  civicOverview: (q: Record<string, string>) => unknown;
   metaStatus: () => unknown;
 }
 
@@ -92,6 +93,7 @@ export function buildRoutes(deps: RouteDeps): RouteDef[] {
     { url: API.metricsMap, handler: deps.metricsMap },
     { url: API.metricsCompare, handler: deps.metricsCompare },
     { url: API.metricsTrust, handler: deps.metricsTrust },
+    { url: API.civicOverview, handler: (q) => deps.civicOverview(q) },
     { url: API.metaStatus, handler: deps.metaStatus }
   ];
 }
