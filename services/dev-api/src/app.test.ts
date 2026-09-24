@@ -17,7 +17,8 @@ import {
   ElectionsList,
   ElectionDetail,
   YablokoElectionHistory,
-  RegionalElectionHistory
+  RegionalElectionHistory,
+  PostmortemReport
 } from '@yabloko/api-contract';
 import { z } from 'zod';
 
@@ -40,7 +41,8 @@ async function withApp(fn: (app: Awaited<ReturnType<typeof buildApp>>['app']) =>
     metricsCatalogPath: resolve(process.cwd(), 'datasets/metrics/catalog.json'),
     civicTopicsPath: resolve(process.cwd(), 'datasets/civic/topics.json'),
     positionLinksPath: resolve(process.cwd(), 'datasets/civic/topic_links.json'),
-    electionsDatasetPath: resolve(process.cwd(), 'datasets/elections/elections.json')
+    electionsDatasetPath: resolve(process.cwd(), 'datasets/elections/elections.json'),
+    postmortemDatasetPath: resolve(process.cwd(), 'datasets/elections/postmortem.json')
   });
   try {
     await fn(handle.app);
@@ -219,8 +221,8 @@ describe('dev-api (интеграция контракта)', () => {
     await withApp(async (app) => {
       const list = await app.inject({ method: 'GET', url: API.electionsList });
       const el = Envelope(ElectionsList).parse(list.json()).data;
-      expect(el.total).toBe(11);
-      expect(el.items.filter((e) => e.level === 'federal')).toHaveLength(8);
+      expect(el.total).toBe(12);
+      expect(el.items.filter((e) => e.level === 'federal')).toHaveLength(9);
       for (const e of el.items) {
         expect(e.official_source_id).toBe('synthetic-elections');
         expect(e.data_mode).toBe('SYNTHETIC');
@@ -257,6 +259,37 @@ describe('dev-api (интеграция контракта)', () => {
       // валидация: битый id → 404
       const bad = await app.inject({ method: 'GET', url: `${API.electionDetail}?id=..%2Fetc` });
       expect(bad.statusCode).toBe(404);
+    });
+  });
+
+  it('elections/postmortem: 4 несмешиваемых блока, авто-фаза, DATA QUALITY', async () => {
+    await withApp(async (app) => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `${API.electionsPostmortem}?election=${encodeURIComponent('ru-gd-2026')}`
+      });
+      expect(res.statusCode).toBe(200);
+      const pm = Envelope(PostmortemReport).parse(res.json()).data;
+      // песочница: 2026-09-24 > дня выборов 2026-09-20 → постмортем активен (авто-переключение)
+      expect(pm.phase).toBe('postmortem');
+      expect(pm.blocks.map((b) => b.kind)).toEqual([
+        'official_result',
+        'party_interpretation',
+        'independent_analysis',
+        'model_inference'
+      ]);
+      const party = pm.blocks.find((b) => b.kind === 'party_interpretation')!;
+      expect(party.rows.length).toBeGreaterThanOrEqual(2);
+      for (const r of party.rows) {
+        expect(r.statement_category).toBe('OFFICIAL_PARTY_STATEMENT');
+        expect(r.votes).toBeNull();
+      }
+      const official = pm.blocks.find((b) => b.kind === 'official_result')!;
+      expect(official.status).toBe('insufficient_data');
+      expect(official.note).toContain('не моделируются');
+      // страж: в отчёте нет предсказаний
+      expect(JSON.stringify(pm)).not.toContain('prediction');
+      expect(pm.data_quality.blocks).toHaveLength(4);
     });
   });
 

@@ -12,3 +12,4 @@ export * from './repositories/metrics.js';
 export * from './repositories/civic.js';
 export * from './repositories/matrix.js';
 export * from './repositories/elections.js';
+export * from './repositories/postmortem.js';

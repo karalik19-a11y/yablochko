@@ -37,6 +37,9 @@ import {
   computePositionMatrix,
   loadElectionsFile,
   seedElections,
+  loadPostmortemBlocks,
+  seedPostmortemBlocks,
+  getPostmortem,
   listElections,
   getElection,
   getYablokoFederalHistory,
@@ -80,6 +83,7 @@ export interface AppOptions {
   civicTopicsPath?: string;
   positionLinksPath?: string;
   electionsDatasetPath?: string;
+  postmortemDatasetPath?: string;
   /** Отключить генерацию SYNTHETIC-метрик. */
   disableSyntheticMetrics?: boolean;
   /** Отключить генерацию SYNTHETIC-агрегатов настроений. */
@@ -215,6 +219,9 @@ export async function buildApp(opts: AppOptions): Promise<AppHandle> {
   }
   if (opts.electionsDatasetPath) {
     seedElections(db, loadElectionsFile(opts.electionsDatasetPath), { sourceId: 'synthetic-elections' });
+  }
+  if (opts.postmortemDatasetPath) {
+    seedPostmortemBlocks(db, loadPostmortemBlocks(opts.postmortemDatasetPath));
   }
 
   const timers: NodeJS.Timeout[] = [];
@@ -474,6 +481,19 @@ export async function buildApp(opts: AppOptions): Promise<AppHandle> {
             'Кандидаты добавляются ТОЛЬКО из официальных списков (ЦИК/избиркомы/партийные документы); персональные записи не выдумываются и предсказания не строятся.'
         },
         meta: metaFor('SEED', ['Кандидатов в seed нет: ждёт официального импорта (Этап 8).'])
+      };
+    },
+    electionsPostmortem: (q: Record<string, string>) => {
+      const id = String(q.election ?? 'ru-gd-2026');
+      if (!id || !/^[a-z0-9-]+$/i.test(id)) return null;
+      const report = getPostmortem(db, id);
+      if (!report) return null;
+      return {
+        data: report,
+        meta: metaFor('SEED', [
+          'Четыре несмешиваемых блока: OFFICIAL RESULT / PARTY INTERPRETATION / INDEPENDENT ANALYSIS / MODEL INFERENCE.',
+          'Официальные результаты вносятся только из ЦИК/избиркомов; модель не строит прогнозов и не заполняет независимый анализ.'
+        ])
       };
     },
     civicOverview: (q: Record<string, string>) => {

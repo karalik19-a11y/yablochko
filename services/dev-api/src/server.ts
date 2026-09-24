@@ -13,6 +13,7 @@ const { app } = await buildApp({
   civicTopicsPath: process.env.CIVIC_TOPICS ?? resolve(repoRoot, 'datasets/civic/topics.json'),
   positionLinksPath: process.env.POSITION_LINKS ?? resolve(repoRoot, 'datasets/civic/topic_links.json'),
   electionsDatasetPath: process.env.ELECTIONS_DATASET ?? resolve(repoRoot, 'datasets/elections/elections.json'),
+  postmortemDatasetPath: process.env.POSTMORTEM_DATASET ?? resolve(repoRoot, 'datasets/elections/postmortem.json'),
   staticDir: process.env.STATIC_DIR ?? resolve(repoRoot, 'apps/web-dev/dist'),
   version: '0.2.0',
   stage: 2,

@@ -16,6 +16,7 @@ import { TerritoryScreen } from './screens/Territory.js';
 import { MetricsExplorer } from './screens/MetricsExplorer.js';
 import { CivicTrendsScreen } from './screens/CivicTrends.js';
 import { ElectionsScreen } from './screens/Elections.js';
+import { PostmortemScreen } from './screens/Postmortem.js';
 
 const IMPLEMENTED = new Set([
   'overview',
@@ -29,7 +30,8 @@ const IMPLEMENTED = new Set([
   'economy',
   'society',
   'civic-trends',
-  'elections'
+  'elections',
+  'postmortem'
 ]);
 
 export function App() {
@@ -95,6 +97,7 @@ export function App() {
         )}
         {route === 'civic-trends' && <CivicTrendsScreen />}
         {route === 'elections' && <ElectionsScreen />}
+        {route === 'postmortem' && <PostmortemScreen />}
         {route === 'yabloko-position' && <PositionsScreen />}
         {route === 'organization' && <OrganizationScreen />}
         {route === 'sources' && <SourcesScreen />}

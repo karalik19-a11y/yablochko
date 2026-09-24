@@ -28,7 +28,7 @@ export const NAV: NavItem[] = [
   { key: 'decision-lab', label: 'Decision Lab', group: 'Информационная среда', stage: 12, description: 'ALADDIN: сценарное моделирование (Этап 12)' },
   { key: 'research', label: 'Research', group: 'Информационная среда', stage: 12, description: 'Исследовательские рабочие пространства (Этап 12)' },
   { key: 'organization', label: 'Организация', group: 'Партия', stage: null, description: 'Руководство, органы, документы, кандидаты' },
-  { key: 'legal-monitor', label: 'Правовой мониторинг', group: 'Партия', stage: 9, description: 'ЦИК, избиркомы, суды, статусы (Этап 9)' },
+  { key: 'postmortem', label: 'Постмортем 2026', group: 'Электорат', stage: null, description: 'Election Postmortem: 4 несмешиваемых блока + DATA QUALITY (Этап 9)' },
   { key: 'sources', label: 'Источники', group: 'Система', stage: null, description: 'Source Registry: реестр и статусы источников' },
   { key: 'alerts', label: 'Алерты', group: 'Система', stage: null, description: 'Alert Center: системные события (каркас)' },
   { key: 'settings', label: 'Настройки', group: 'Система', stage: null, description: 'Тема, данные, обновления (каркас)' }

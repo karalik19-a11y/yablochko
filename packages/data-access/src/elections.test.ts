@@ -33,10 +33,10 @@ function fullDb() {
 }
 
 describe('seed выборов', () => {
-  it('11 выборов (8 федеральных ГД + 3 региональных), 11 результатов, 11 turnout', () => {
+  it('12 выборов (9 федеральных ГД + 3 региональных), 11 результатов, 11 turnout', () => {
     const db = fullDb();
-    expect(listElections(db)).toHaveLength(11);
-    expect(listElections(db, { level: 'federal' })).toHaveLength(8);
+    expect(listElections(db)).toHaveLength(12);
+    expect(listElections(db, { level: 'federal' })).toHaveLength(9);
     expect(listElections(db, { regionGeoId: 'ru:subject:spe' })).toHaveLength(1);
     const det = getElection(db, 'ru-gd-2021');
     expect(det?.results).toHaveLength(1);
@@ -47,7 +47,7 @@ describe('seed выборов', () => {
   it('idempotency: повторный сид не дублирует строки', () => {
     const db = fullDb();
     seedElections(db, loadElectionsFile(electionsPath), { sourceId: SOURCE, dataMode: 'SYNTHETIC' });
-    expect(listElections(db)).toHaveLength(11);
+    expect(listElections(db)).toHaveLength(12);
     const nRes = (db.prepare('SELECT COUNT(*) AS n FROM election_results').get() as { n: number }).n;
     expect(nRes).toBe(11);
   });
@@ -69,7 +69,7 @@ describe('DoD: согласованность сумм и процентов', (
   it('validateElectionConsistency: 0 ошибок по всему сиду', () => {
     const db = fullDb();
     const report = validateElectionConsistency(db);
-    expect(report.elections_checked).toBe(11);
+    expect(report.elections_checked).toBe(12);
     expect(report.results_checked).toBe(11);
     expect(report.turnout_checked).toBe(11);
     expect(report.errors).toEqual([]);

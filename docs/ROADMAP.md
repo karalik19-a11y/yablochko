@@ -14,7 +14,7 @@
 | **M0 Foundation** | 1–3 | Аудит + ядро Party Context + Source Registry / ingestion | Этапы 1–3 ✅ |
 | **M1 Data Spine** | 4–5 | География, показатели территорий | Этапы 4–5 ✅ |
 | **M2 Analytics Core** | 6–8 | Настроения, Position Matrix, выборы | Этапы 6–8 ✅ |
-| **M3 Deep Modules** | 9–13 | Postmortem-2026, OSINT, медиа, Decision Lab, AI | — |
+| **M3 Deep Modules** | 9–13 | Postmortem-2026, OSINT, медиа, Decision Lab, AI | Этап 9 ✅ |
 | **M4 Product Polish** | 14 | Премиум UX, целостность платформы | — |
 | **M5 Desktop Delivery** | 15–16 | Tauri Windows, Setup.exe, автообновления | — |
 | **M6 Hardening & Release** | 17–18 | Security audit, production audit, релиз | — |
@@ -317,13 +317,42 @@ Election History.
   lint/typecheck/build ✅, runtime: 11 выборов, ГД-2021 ЯБЛОКО 1.34%/4 мандата,
   история 8 точек, traversal → 404, Этапы 1–7 не сломаны (200) ✅.
 
-## Этап 9 — Post-Election 2026
+## Этап 9 — Post-Election 2026 ✅ (выполнен 2026-09-24)
 
 **Цель:** Election Postmortem.
 **Объём:** авто-сборка postmortem: результаты, динамика vs прошлые выборы, территория,
 кандидаты, явка, заявления партии, СМИ, наблюдатели, суды, DATA QUALITY; четыре
 несмешиваемых блока OFFICIAL RESULT / PARTY INTERPRETATION / INDEPENDENT ANALYSIS /
 MODEL INFERENCE; авто-переключение режима после завершения выборов.
+
+**Результат:**
+- Миграция 007: `postmortem_blocks` — CHECK block_kind IN (official_result,
+  party_interpretation, independent_analysis, model_inference); CHECK статуса
+  (pending/ready/insufficient_data); UNIQUE выбор+блок+секция; колонка note.
+- ГД-2026 (2026-09-20) добавлена в базу выборов как запланированный факт;
+  официальных результатов нет и не моделируется.
+- Сид `datasets/elections/postmortem.json`: PARTY INTERPRETATION для ГД-2026 —
+  только кампательные материалы INITIAL CONTEXT (лозунги «За мир и свободу!»,
+  «За жизнь без страха!», программа), OFFICIAL PARTY STATEMENT, UNVERIFIED;
+  INDEPENDENT ANALYSIS — честный INSUFFICIENT (не заполняется моделью).
+- Репозиторий `packages/data-access/postmortem.ts`: `getElectionPhase`
+  (чистая функция pre/election_day/postmortem — авто-переключение режима),
+  `getPostmortem` — 4 блока в фиксированном порядке: OFFICIAL RESULT (каждая
+  строка с source_id + категория FACT; SYNTHETIC-оговорка; для ГД-2026 —
+  честное «результаты не внесены, не моделируются»), PARTY INTERPRETATION
+  (строки без чисел результатов), INDEPENDENT ANALYSIS (внешние источники,
+  Этапы 10–11), MODEL INFERENCE (динамика vs предыдущие выборы того же типа:
+  п.п. списка, мандаты, явка; методология с базой; «не результат, не прогноз»).
+  DATA QUALITY: сводка статусов, SYNTHETIC-блоки, UNVERIFIED-строки.
+- API `GET /api/v1/elections/postmortem?election=` (+контракт PostmortemReport,
+  валидация id, traversal → 404).
+- Экран POSTMORTEM — ВЫБОРЫ 2026 (нав «Постмортем 2026»): селектор завершённых
+  выборов, бейдж авто-фазы («ПОСТМОРТЕМ · день N после выборов»), 4 панели
+  блоков с категорийными бейджами и статусами, панель DATA QUALITY.
+- Проверено: Vitest 131/131 (фазы/границы, несмешиваемость блоков стражами,
+  динамика ГД-2021: −0.65 п.п. / +3 мандата / +3.8 п.п. явки, CHECK kind,
+  idempotency, детерминизм, интеграция контракта), lint/typecheck/build ✅,
+  runtime: ГД-2026 postmortem (день 4), ГД-2021 заполненный, traversal → 404 ✅.
 **DoD:** генерация postmortem на fixture-выборах; UI-тест разделения блоков.
 
 ## Этап 10 — OSINT
@@ -424,4 +453,5 @@ launch → login → analysis → export → update → uninstall; финаль�
 | 6. Civic Intelligence | ✅ выполнен (агрегат-only pipeline, k-анонимность, CIVIC TRENDS) |
 | 7. YABLOKO Position Matrix | ✅ выполнен (матрица категорий, OVERLAP/DIVERGENCE/UNCERTAINTY, стражи несмешения) |
 | 8. Election Intelligence | ✅ выполнен (база выборов, official_source, суммы/проценты тестами, нет предсказаний) |
-| 9–18 | — запланированы |
+| 9. Post-Election 2026 | ✅ выполнен (postmortem, 4 несмешиваемых блока, авто-фаза, DATA QUALITY) |
+| 10–18 | — запланированы |

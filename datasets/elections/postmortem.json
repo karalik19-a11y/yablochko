@@ -1,0 +1,51 @@
+{
+  "meta": {
+    "note": "Post-Election Postmortem (Этап 9): сид блоков, кроме вычисляемых. PARTY INTERPRETATION — только официальные кампательные материалы из INITIAL CONTEXT (лозунги 2026, программа), статус UNVERIFIED до сверки с pariy documentation. INDEPENDENT ANALYSIS (наблюдатели/СМИ/суды) не заполняется моделью — только реальными импортами (Этапы 10–11).",
+    "methodology": "Четыре несмешиваемых блока: OFFICIAL RESULT — только внесённые официальные результаты (каждая строка с источником); PARTY INTERPRETATION — заявления партии (OFFICIAL PARTY STATEMENT), никогда не содержат чисел результатов; INDEPENDENT ANALYSIS — наблюдатели/СМИ/суды (внешние источники); MODEL INFERENCE — вычисляемые сравнения/динамика с явной пометкой «модель, не официальный результат». Блоки не переносят данные друг друга."
+  },
+  "blocks": [
+    {
+      "block_id": "pm-gd2026-party-statements",
+      "election_id": "ru-gd-2026",
+      "block_kind": "party_interpretation",
+      "section_key": "statements",
+      "title": "Кампанительные материалы и заявления партии",
+      "status": "ready",
+      "source_id": "initial-context",
+      "data_mode": "SEED",
+      "note": "Заявления о результатах появятся из официальных источников после опубликования; ниже — кампательные материалы INITIAL CONTEXT (UNVERIFIED, требует сверки с партийными документами).",
+      "rows": [
+        {
+          "label": "Лозунг кампании 2026",
+          "text": "«За мир и свободу!»",
+          "statement_category": "OFFICIAL_PARTY_STATEMENT",
+          "date": "2026-01-01"
+        },
+        {
+          "label": "Лозунг кампании 2026",
+          "text": "«За жизнь без страха!»",
+          "statement_category": "OFFICIAL_PARTY_STATEMENT",
+          "date": "2026-01-01"
+        },
+        {
+          "label": "Программа",
+          "text": "Ключевые положения программы партии — документ yabloko-program-2026-key-provisions в реестре партийных документов (DATE_FROM 2026, UNVERIFIED).",
+          "statement_category": "OFFICIAL_PARTY_STATEMENT",
+          "date": "2026-01-01"
+        }
+      ]
+    },
+    {
+      "block_id": "pm-gd2026-independent-placeholder",
+      "election_id": "ru-gd-2026",
+      "block_kind": "independent_analysis",
+      "section_key": "observers_media_courts",
+      "title": "Наблюдатели, СМИ, суды",
+      "status": "insufficient_data",
+      "source_id": null,
+      "data_mode": "SEED",
+      "note": "INSUFFICIENT DATA: данные наблюдателей, медиа-мониторинга и судебных споров не внесены. Подключаются только из внешних источников (медиа — Этап 11, OSINT — Этап 10); моделью не заполняются.",
+      "rows": []
+    }
+  ]
+}

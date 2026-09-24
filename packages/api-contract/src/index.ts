@@ -8,6 +8,7 @@ export * from './metrics.js';
 export * from './civic.js';
 export * from './matrix.js';
 export * from './elections.js';
+export * from './postmortem.js';
 
 /** Маршруты API v1 (единый источник истины для клиента и сервера). */
 export const API = {
@@ -39,5 +40,6 @@ export const API = {
   electionDetail: '/api/v1/elections/detail',
   electionsYablokoHistory: '/api/v1/elections/yabloko-history',
   electionsRegional: '/api/v1/elections/region',
-  electionsCandidates: '/api/v1/elections/candidates'
+  electionsCandidates: '/api/v1/elections/candidates',
+  electionsPostmortem: '/api/v1/elections/postmortem'
 } as const;

@@ -42,6 +42,7 @@ export interface RouteDeps {
   electionsYablokoHistory: () => unknown;
   electionsRegional: (q: Record<string, string>) => unknown;
   electionsCandidates: (q: Record<string, string>) => unknown;
+  electionsPostmortem: (q: Record<string, string>) => unknown;
   metaStatus: () => unknown;
 }
 
@@ -106,6 +107,7 @@ export function buildRoutes(deps: RouteDeps): RouteDef[] {
     { url: API.electionsYablokoHistory, handler: () => deps.electionsYablokoHistory() },
     { url: API.electionsRegional, handler: (q) => deps.electionsRegional(q) },
     { url: API.electionsCandidates, handler: (q) => deps.electionsCandidates(q) },
+    { url: API.electionsPostmortem, handler: (q) => deps.electionsPostmortem(q) },
     { url: API.metaStatus, handler: deps.metaStatus }
   ];
 }

@@ -1,6 +1,6 @@
 {
   "meta": {
-    "note": "Election Intelligence (Этап 8). Метаданные выборов (название/дата/уровень/система) — установленные публичные факты из INITIAL CONTEXT, статус UNVERIFIED до сверки с ЦИК. Числовые результаты (голоса/проценты/мандаты/явка) — SYNTHETIC-ПРИБЛИЖЕНИЯ для демонстрации интерфейса (grade D, source synthetic-elections): согласованы внутренне (votes вычисляются от valid_ballots), но НЕ являются официальными данными; заменяются при CI-импорте ЦИК с сохранением тех же election_id. Персональные кандидаты в seed отсутствуют (не выдумываются) — добавляются только из официальных списков.",
+    "note": "Election Intelligence (Этап 8). Метаданные выборов (название/дата/уровень/система) — установленные публичные факты из INITIAL CONTEXT, статус UNVERIFIED до сверки с ЦИК. Числовые результаты (голоса/проценты/мандаты/явка) — SYNTHETIC-ПРИБЛИЖЕНИЯ для демонстрации интерфейса (grade D, source synthetic-elections): согласованы внутренне (votes вычисляются от valid_ballots), но НЕ являются официальными данными; заменяются при CI-импорте ЦИК с сохранением тех же election_id. Персональные кандидаты в seed отсутствуют (не выдумываются) — добавляются только из официальных списков. ГД-2026 (2026-09-20) — запланированные выборы (установленный факт календаря); официальных результатов нет и не моделируется — внесение только из ЦИК после публикации протоколов.",
     "methodology": "Схема: elections → election_districts → election_results (партийные списки и кандидаты) / election_turnout. Каждая строка несёт official_source_id. Согласованность: votes ≈ valid_ballots × percent / 100 (±1% округления); ballots_cast ≤ voters_registered; seats ≤ seats_total. Тесты покрывают суммы и проценты (DoD). Колонок предсказаний/вероятностей победы нет — запрещены.",
     "as_of": "2026-09-24"
   },
@@ -114,6 +114,16 @@
       "election_type": "regional_parliament",
       "electoral_system": "majoritarian",
       "seats_total": 45
+    },
+    {
+      "election_id": "ru-gd-2026",
+      "name": "Выборы депутатов Государственной Думы IX созыва",
+      "election_date": "2026-09-20",
+      "level": "federal",
+      "region_geo_id": null,
+      "election_type": "parliament",
+      "electoral_system": "mixed",
+      "seats_total": 450
     }
   ],
   "results": [

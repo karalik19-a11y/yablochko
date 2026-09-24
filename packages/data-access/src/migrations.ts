@@ -507,6 +507,32 @@ CREATE INDEX idx_results_election ON election_results(election_id);
 CREATE INDEX idx_candidates_election ON election_candidates(election_id, is_yabloko);
 CREATE INDEX idx_turnout_election ON election_turnout(election_id);
 `
+  },
+  {
+    id: 7,
+    name: '007_election_postmortem',
+    sql: `
+-- Post-Election (Этап 9): postmortem. Четыре НЕСМЕШИВАЕМЫХ блока:
+-- official_result / party_interpretation / independent_analysis / model_inference.
+-- CHECK на уровне схемы не даёт добавить пятый вид или смешать категории.
+CREATE TABLE postmortem_blocks (
+  block_id TEXT PRIMARY KEY,
+  election_id TEXT NOT NULL REFERENCES elections(election_id),
+  block_kind TEXT NOT NULL CHECK (block_kind IN ('official_result','party_interpretation','independent_analysis','model_inference')),
+  section_key TEXT NOT NULL,
+  title TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  source_id TEXT REFERENCES sources(source_id),
+  data_mode TEXT NOT NULL DEFAULT 'SYNTHETIC',
+  verification_status TEXT NOT NULL DEFAULT 'UNVERIFIED',
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','ready','insufficient_data')),
+  note TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE(election_id, block_kind, section_key)
+);
+CREATE INDEX idx_postmortem_election ON postmortem_blocks(election_id, block_kind);
+`
   }
 ];
 
