@@ -42,18 +42,21 @@ jobs:
       - name: Rust unit tests (golden Монте-Карло, поиски)
         shell: bash
         run: |
-          set -o pipefail
-          if ! cargo test --manifest-path apps/desktop/core-rs/Cargo.toml --release 2>&1 | tee cargo_test.log; then
-            echo "::error::cargo test failed"
-            grep -nE "^(error|warning: unused|test .* FAILED|failures:)" cargo_test.log | head -30 | while IFS=: read -r ln rest; do
-              echo "::error::L$ln ${rest:0:180}"
+          set +e
+          cargo test --manifest-path apps/desktop/core-rs/Cargo.toml --release 2>&1 | tee cargo_test.log
+          rc=${PIPESTATUS[0]}
+          if [ "$rc" -ne 0 ]; then
+            echo "::error::cargo test failed (rc=$rc)"
+            # Логи job недоступны через API (blob EOF) — ошибки идём в аннотации.
+            grep -nE "^error" cargo_test.log | head -12 | while IFS= read -r line; do
+              echo "::error::${line:0:250}"
             done
-            # фрагменты с контекстом ошибок — в аннотации (логи blob недоступны)
-            grep -nE "^error(\[E[0-9]+\])?:" -A 4 cargo_test.log | head -60 | while IFS= read -r line; do
-              echo "::error::${line:0:240}"
+            tail -n 25 cargo_test.log | while IFS= read -r line; do
+              echo "::error::TAIL ${line:0:250}"
             done
             exit 1
           fi
+          exit 0
 
       - name: Tauri build (NSIS + MSI)
         working-directory: apps/desktop
