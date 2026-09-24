@@ -14,7 +14,7 @@
 | **M0 Foundation** | 1–3 | Аудит + ядро Party Context + Source Registry / ingestion | Этапы 1–3 ✅ |
 | **M1 Data Spine** | 4–5 | География, показатели территорий | Этапы 4–5 ✅ |
 | **M2 Analytics Core** | 6–8 | Настроения, Position Matrix, выборы | Этапы 6–8 ✅ |
-| **M3 Deep Modules** | 9–13 | Postmortem-2026, OSINT, медиа, Decision Lab, AI | Этап 9 ✅ |
+| **M3 Deep Modules** | 9–13 | Postmortem-2026, OSINT, медиа, Decision Lab, AI | Этапы 9–10 ✅ |
 | **M4 Product Polish** | 14 | Премиум UX, целостность платформы | — |
 | **M5 Desktop Delivery** | 15–16 | Tauri Windows, Setup.exe, автообновления | — |
 | **M6 Hardening & Release** | 17–18 | Security audit, production audit, релиз | — |
@@ -355,7 +355,7 @@ MODEL INFERENCE; авто-переключение режима после за�
   runtime: ГД-2026 postmortem (день 4), ГД-2021 заполненный, traversal → 404 ✅.
 **DoD:** генерация postmortem на fixture-выборах; UI-тест разделения блоков.
 
-## Этап 10 — OSINT
+## Этап 10 — OSINT ✅ (выполнен 2026-09-24)
 
 **Цель:** граф публичных сущностей.
 **Объём:** public_entities (публичные фигуры, организации, компании, СМИ), events,
@@ -363,6 +363,37 @@ documents, statements; граф с evidence-edges (works_at/member_of/spoke_at/p
 mentioned/associated_with/participated_in); timeline; source graph; поиск.
 **DoD:** рёбра без evidence невозможны (схема+тесты); приватные лица не вносятся
 (тест-стражи); профиль фигуры по разделам IDENTITY…SOURCES.
+
+**Результат:**
+- Миграция 008: `osint_entities` (kind person/organization/company/media; **CHECK
+  приватности**: kind='person' требует public_role ≥ 3 символов — частное лицо
+  внести невозможно), `osint_events`, `osint_documents` (ссылки на партийные
+  документы без дублирования), `osint_statements` (категории
+  OFFICIAL_PARTY_STATEMENT/PUBLIC_STATEMENT; ссылки на позиции реестра),
+  `osint_edges` — **рёбра без evidence невозможны**: evidence NOT NULL ≥ 5 символов
+  + evidence_source_id REFERENCES sources + CHECK ровно-один-dst + CHECK-матрица
+  relation→тип назначения (works_at/member_of/associated_with → entity;
+  spoke_at/participated_in → event; published → document|statement; mentioned →
+  statement|document|entity).
+- Сид `datasets/osint/osint_graph.json` (только INITIAL CONTEXT): Николай Рыбаков
+  (председатель), Григорий Явлинский (председатель ФПК), РОДП «ЯБЛОКО»;
+  6 evidence-рёбер (member_of ×2, published ×2, participated_in, mentioned LOW);
+  2 документа (программа 2026, коммуникация 2026), 1 событие, 4 statements-ссылки.
+- Репозиторий: `getOsintGraph` (узлы/рёбра/артефакты + privacy_note),
+  `getOsintProfile` — разделы IDENTITY → AFFILIATIONS (evidence+confidence) →
+  STATEMENTS → TIMELINE (хронология событий/документов/заявлений) → SOURCES
+  (счётчик использований), `searchOsintEntities` (JS-фильтр: lower() SQLite не
+  обрабатывает кириллицу).
+- API: `/api/v1/osint/graph`, `/osint/entity?id=`, `/osint/search?q=` (валидация,
+  traversal → 404). Контракт api-contract/osint.ts.
+- Экран OSINT: SVG-граф (детерминированная раскладка: персоны → организации →
+  артефакты; подписи relation; клик по узлу → профиль), поиск, список сущностей,
+  профиль по разделам с бейджами категорий и confidence, privacy-note.
+- Страж-тесты: вставка персоны без public_role → CHECK-ошибка; вставка ребра без
+  evidence/с коротким evidence/без evidence-source/с двумя dst → CHECK-ошибки;
+  в сиде нет supporter/opponent/vote_probability; в схеме нет stance/support_level.
+- Проверено: Vitest 141/141, lint/typecheck/build ✅, runtime: граф 3 узла / 6 рёбер,
+  профиль Явлинского (IDENTITY/AFFILIATIONS/SOURCES), поиск «рыбаков» ✅.
 
 ## Этап 11 — Media Intelligence
 
@@ -454,4 +485,5 @@ launch → login → analysis → export → update → uninstall; финаль�
 | 7. YABLOKO Position Matrix | ✅ выполнен (матрица категорий, OVERLAP/DIVERGENCE/UNCERTAINTY, стражи несмешения) |
 | 8. Election Intelligence | ✅ выполнен (база выборов, official_source, суммы/проценты тестами, нет предсказаний) |
 | 9. Post-Election 2026 | ✅ выполнен (postmortem, 4 несмешиваемых блока, авто-фаза, DATA QUALITY) |
-| 10–18 | — запланированы |
+| 10. OSINT | ✅ выполнен (граф публичных сущностей, evidence-рёбра, CHECK приватности) |
+| 11–18 | — запланированы |

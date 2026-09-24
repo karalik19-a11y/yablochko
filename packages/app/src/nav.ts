@@ -24,7 +24,7 @@ export const NAV: NavItem[] = [
   { key: 'yabloko-position', label: 'Позиция «Яблока»', group: 'Темы и позиции', stage: null, description: 'Реестр позиций партии; матрица с общественным мнением — Этап 7' },
   { key: 'elections', label: 'Выборы', group: 'Электорат', stage: null, description: 'Election Intelligence: результаты и явка с official_source; SYNTHETIC до импорта ЦИК (Этап 8)' },
   { key: 'media', label: 'Медиа', group: 'Информационная среда', stage: 11, description: 'Media Intelligence и мониторинг упоминаний (Этап 11)' },
-  { key: 'osint', label: 'OSINT', group: 'Информационная среда', stage: 10, description: 'Публичные фигуры и организации, граф связей (Этап 10)' },
+  { key: 'osint', label: 'OSINT', group: 'Информационная среда', stage: null, description: 'Граф публичных сущностей с evidence-рёбрами; приватные лица не вносятся (Этап 10)' },
   { key: 'decision-lab', label: 'Decision Lab', group: 'Информационная среда', stage: 12, description: 'ALADDIN: сценарное моделирование (Этап 12)' },
   { key: 'research', label: 'Research', group: 'Информационная среда', stage: 12, description: 'Исследовательские рабочие пространства (Этап 12)' },
   { key: 'organization', label: 'Организация', group: 'Партия', stage: null, description: 'Руководство, органы, документы, кандидаты' },

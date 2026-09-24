@@ -18,7 +18,9 @@ import {
   ElectionDetail,
   YablokoElectionHistory,
   RegionalElectionHistory,
-  PostmortemReport
+  PostmortemReport,
+  OsintGraph,
+  OsintProfile
 } from '@yabloko/api-contract';
 import { z } from 'zod';
 
@@ -42,7 +44,8 @@ async function withApp(fn: (app: Awaited<ReturnType<typeof buildApp>>['app']) =>
     civicTopicsPath: resolve(process.cwd(), 'datasets/civic/topics.json'),
     positionLinksPath: resolve(process.cwd(), 'datasets/civic/topic_links.json'),
     electionsDatasetPath: resolve(process.cwd(), 'datasets/elections/elections.json'),
-    postmortemDatasetPath: resolve(process.cwd(), 'datasets/elections/postmortem.json')
+    postmortemDatasetPath: resolve(process.cwd(), 'datasets/elections/postmortem.json'),
+    osintGraphPath: resolve(process.cwd(), 'datasets/osint/osint_graph.json')
   });
   try {
     await fn(handle.app);
@@ -290,6 +293,41 @@ describe('dev-api (интеграция контракта)', () => {
       // страж: в отчёте нет предсказаний
       expect(JSON.stringify(pm)).not.toContain('prediction');
       expect(pm.data_quality.blocks).toHaveLength(4);
+    });
+  });
+
+  it('osint: граф публичных сущностей по контракту, evidence у всех рёбер, приватность', async () => {
+    await withApp(async (app) => {
+      const res = await app.inject({ method: 'GET', url: API.osintGraph });
+      const g = Envelope(OsintGraph).parse(res.json()).data;
+      expect(g.entities.length).toBeGreaterThanOrEqual(3);
+      for (const e of g.entities) {
+        if (e.kind === 'person') {
+          expect(e.public_role).not.toBeNull();
+          expect(e.public_role!.length).toBeGreaterThanOrEqual(3);
+        }
+      }
+      expect(g.edges.length).toBeGreaterThanOrEqual(6);
+      for (const e of g.edges) {
+        expect(e.evidence.length).toBeGreaterThanOrEqual(5);
+        expect(e.evidence_source_id).not.toBe('');
+      }
+      expect(g.privacy_note).toContain('Приватные лица');
+
+      const prof = await app.inject({
+        method: 'GET',
+        url: `${API.osintEntity}?id=${encodeURIComponent('osint-pers-rybakov')}`
+      });
+      const p = Envelope(OsintProfile).parse(prof.json()).data;
+      expect(p.identity.kind).toBe('person');
+      expect(p.affiliations.length).toBeGreaterThanOrEqual(2);
+      expect(p.sources.length).toBeGreaterThanOrEqual(1);
+
+      const sr = await app.inject({ method: 'GET', url: `${API.osintSearch}?q=${encodeURIComponent('Явлинский')}` });
+      expect(sr.statusCode).toBe(200);
+
+      const bad = await app.inject({ method: 'GET', url: `${API.osintEntity}?id=..%2Fetc` });
+      expect(bad.statusCode).toBe(404);
     });
   });
 

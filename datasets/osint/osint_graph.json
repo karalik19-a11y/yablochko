@@ -1,0 +1,154 @@
+{
+  "meta": {
+    "note": "OSINT (Этап 10): граф ПУБЛИЧНЫХ сущностей. В seed — только публичные фигуры с явной публичной ролью (руководство партии из INITIAL CONTEXT) и сама партия как организация. Приватные лица не вносятся архитектурно (CHECK в схеме): персональные данные частных лиц, профили сторонников/противников и персональные электоральные вероятности отсутствуют. Каждый узел и каждое ребро несут evidence-источник; рёбер без доказательства быть не может (схема + тесты).",
+    "methodology": "Разделы профиля публичной фигуры: IDENTITY (имя, публичная роль, категория сущности) → AFFILIATIONS (рёбра связей с evidence) → STATEMENTS (только categorized заявления: OFFICIAL PARTY STATEMENT / PUBLIC STATEMENT) → TIMELINE (публичные события и документы по датам) → SOURCES (полный список evidence с source_id). Записи UNVERIFIED до подтверждения официальными источниками; nothing here is a private-individual profile."
+  },
+  "entities": [
+    {
+      "entity_id": "osint-pers-rybakov",
+      "kind": "person",
+      "name": "Николай Рыбаков",
+      "public_role": "Председатель партии (по INITIAL CONTEXT мастер-плана)",
+      "description": "Публичная фигура: председатель РОДП «ЯБЛОКО» (запись требует регулярной проверки по официальным источникам).",
+      "source_id": "initial-context"
+    },
+    {
+      "entity_id": "osint-pers-yavlinsky",
+      "kind": "person",
+      "name": "Григорий Явлинский",
+      "public_role": "Председатель федерального политического комитета (по INITIAL CONTEXT мастер-плана)",
+      "description": "Публичная фигура: один из основателей партии, председатель ФПК (запись требует проверки по официальным источникам).",
+      "source_id": "initial-context"
+    },
+    {
+      "entity_id": "osint-org-yabloko",
+      "kind": "organization",
+      "name": "Российская объединённая демократическая партия «ЯБЛОКО»",
+      "public_role": "Политическая партия",
+      "description": "Организация: партия, вокруг которой строится аналитика платформы.",
+      "source_id": "initial-context"
+    }
+  ],
+  "events": [
+    {
+      "event_id": "osint-ev-2026-communication",
+      "title": "Актуальная политическая коммуникация 2026 («За мир и свободу!», «За жизнь без страха!»)",
+      "event_date": "2026-01-01",
+      "date_precision": "year",
+      "description": "Публичное партийное событие: запуск коммуникационной линии 2026. Точная дата не верифицирована (INITIAL CONTEXT).",
+      "source_id": "initial-context"
+    }
+  ],
+  "documents": [
+    {
+      "document_id": "osint-doc-program-2026",
+      "title": "Ключевые положения программы 2026 (INITIAL CONTEXT)",
+      "published_date": "2026-01-01",
+      "date_precision": "year",
+      "party_document_id": "yabloko-program-2026-key-provisions",
+      "source_id": "initial-context"
+    },
+    {
+      "document_id": "osint-doc-communication-2026",
+      "title": "Актуальная политическая коммуникация 2026: «За мир и свободу!» · «За жизнь без страха!»",
+      "published_date": "2026-01-01",
+      "date_precision": "year",
+      "party_document_id": "yabloko-communication-2026-slogans",
+      "source_id": "initial-context"
+    }
+  ],
+  "statements": [
+    {
+      "statement_id": "osint-st-yabloko-mir",
+      "entity_id": "osint-org-yabloko",
+      "position_id": "pos-2026-mir",
+      "summary": "Позиция по теме «Мир и международные отношения» (реестр позиций)",
+      "statement_date": "2026-01-01",
+      "statement_category": "OFFICIAL_PARTY_STATEMENT",
+      "source_id": "initial-context"
+    },
+    {
+      "statement_id": "osint-st-yabloko-prava",
+      "entity_id": "osint-org-yabloko",
+      "position_id": "pos-2026-prava-cheloveka",
+      "summary": "Позиция по теме «Права человека» (реестр позиций)",
+      "statement_date": "2026-01-01",
+      "statement_category": "OFFICIAL_PARTY_STATEMENT",
+      "source_id": "initial-context"
+    },
+    {
+      "statement_id": "osint-st-yabloko-svobody",
+      "entity_id": "osint-org-yabloko",
+      "position_id": "pos-2026-svobody",
+      "summary": "Позиция по теме «Свободы» (реестр позиций)",
+      "statement_date": "2026-01-01",
+      "statement_category": "OFFICIAL_PARTY_STATEMENT",
+      "source_id": "initial-context"
+    },
+    {
+      "statement_id": "osint-st-yabloko-demokratiya",
+      "entity_id": "osint-org-yabloko",
+      "position_id": "pos-2026-demokratiya",
+      "summary": "Позиция по теме «Политические институты» (реестр позиций)",
+      "statement_date": "2026-01-01",
+      "statement_category": "OFFICIAL_PARTY_STATEMENT",
+      "source_id": "initial-context"
+    }
+  ],
+  "edges": [
+    {
+      "edge_id": "osint-e-rybakov-member",
+      "src_entity_id": "osint-pers-rybakov",
+      "relation": "member_of",
+      "dst_entity_id": "osint-org-yabloko",
+      "evidence": "INITIAL CONTEXT мастер-плана: Николай Рыбаков — председатель партии (должность в party.json, seed платформы)",
+      "evidence_source_id": "initial-context",
+      "confidence": "MEDIUM"
+    },
+    {
+      "edge_id": "osint-e-yavlinsky-member",
+      "src_entity_id": "osint-pers-yavlinsky",
+      "relation": "member_of",
+      "dst_entity_id": "osint-org-yabloko",
+      "evidence": "INITIAL CONTEXT мастер-плана: Григорий Явлинский — председатель федерального политкомитета партии",
+      "evidence_source_id": "initial-context",
+      "confidence": "MEDIUM"
+    },
+    {
+      "edge_id": "osint-e-yabloko-published-program",
+      "src_entity_id": "osint-org-yabloko",
+      "relation": "published",
+      "dst_document_id": "osint-doc-program-2026",
+      "evidence": "Документ yabloko-program-2026-key-provisions в реестре партийных документов (issuer: РОДП «ЯБЛОКО»)",
+      "evidence_source_id": "initial-context",
+      "confidence": "MEDIUM"
+    },
+    {
+      "edge_id": "osint-e-yabloko-published-communication",
+      "src_entity_id": "osint-org-yabloko",
+      "relation": "published",
+      "dst_document_id": "osint-doc-communication-2026",
+      "evidence": "Документ yabloko-communication-2026-slogans в реестре партийных документов (issuer: РОДП «ЯБЛОКО»)",
+      "evidence_source_id": "initial-context",
+      "confidence": "MEDIUM"
+    },
+    {
+      "edge_id": "osint-e-yabloko-participated-communication",
+      "src_entity_id": "osint-org-yabloko",
+      "relation": "participated_in",
+      "dst_event_id": "osint-ev-2026-communication",
+      "evidence": "Событие ev-2026-communication в реестре партийных событий (субъект коммуникации — партия)",
+      "evidence_source_id": "initial-context",
+      "confidence": "MEDIUM"
+    },
+    {
+      "edge_id": "osint-e-rybakov-statement-mir",
+      "src_entity_id": "osint-pers-rybakov",
+      "relation": "mentioned",
+      "dst_statement_id": "osint-st-yabloko-mir",
+      "evidence": "Связь председателя с официальной позицией партии (реестр позиций; публичное выражение позиции — обязанность председателя по уставной модели)",
+      "evidence_source_id": "initial-context",
+      "confidence": "LOW"
+    }
+  ]
+}

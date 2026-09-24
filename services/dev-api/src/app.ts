@@ -40,6 +40,11 @@ import {
   loadPostmortemBlocks,
   seedPostmortemBlocks,
   getPostmortem,
+  loadOsintGraph,
+  seedOsintGraph,
+  getOsintGraph,
+  getOsintProfile,
+  searchOsintEntities,
   listElections,
   getElection,
   getYablokoFederalHistory,
@@ -84,6 +89,7 @@ export interface AppOptions {
   positionLinksPath?: string;
   electionsDatasetPath?: string;
   postmortemDatasetPath?: string;
+  osintGraphPath?: string;
   /** Отключить генерацию SYNTHETIC-метрик. */
   disableSyntheticMetrics?: boolean;
   /** Отключить генерацию SYNTHETIC-агрегатов настроений. */
@@ -222,6 +228,12 @@ export async function buildApp(opts: AppOptions): Promise<AppHandle> {
   }
   if (opts.postmortemDatasetPath) {
     seedPostmortemBlocks(db, loadPostmortemBlocks(opts.postmortemDatasetPath));
+  }
+  let osintMethodology = '';
+  if (opts.osintGraphPath) {
+    const osint = loadOsintGraph(opts.osintGraphPath);
+    seedOsintGraph(db, osint);
+    osintMethodology = osint.meta.methodology;
   }
 
   const timers: NodeJS.Timeout[] = [];
@@ -494,6 +506,35 @@ export async function buildApp(opts: AppOptions): Promise<AppHandle> {
           'Четыре несмешиваемых блока: OFFICIAL RESULT / PARTY INTERPRETATION / INDEPENDENT ANALYSIS / MODEL INFERENCE.',
           'Официальные результаты вносятся только из ЦИК/избиркомов; модель не строит прогнозов и не заполняет независимый анализ.'
         ])
+      };
+    },
+    osintGraph: () => {
+      return {
+        data: getOsintGraph(db, osintMethodology),
+        meta: metaFor('SEED', [
+          'Только публичные сущности; приватные лица не вносятся (CHECK в схеме).',
+          'Каждое ребро несёт evidence-источник; рёбер без доказательства нет.'
+        ])
+      };
+    },
+    osintEntity: (q: Record<string, string>) => {
+      const id = String(q.id ?? '');
+      if (!id || !/^[a-z0-9-]+$/i.test(id)) return null;
+      const g = getOsintGraph(db, osintMethodology);
+      const profile = getOsintProfile(db, id, g.privacy_note);
+      if (!profile) return null;
+      return {
+        data: profile,
+        meta: metaFor('SEED', [
+          'Профиль публичной фигуры: IDENTITY → AFFILIATIONS → STATEMENTS → TIMELINE → SOURCES. Не профиль частного лица.'
+        ])
+      };
+    },
+    osintSearch: (q: Record<string, string>) => {
+      const query = String(q.q ?? '');
+      return {
+        data: { query, items: searchOsintEntities(db, query) },
+        meta: metaFor('SEED', ['Поиск по публичным сущностям (имя/роль/описание).'])
       };
     },
     civicOverview: (q: Record<string, string>) => {

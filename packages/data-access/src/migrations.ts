@@ -533,6 +533,100 @@ CREATE TABLE postmortem_blocks (
 );
 CREATE INDEX idx_postmortem_election ON postmortem_blocks(election_id, block_kind);
 `
+  },
+  {
+    id: 8,
+    name: '008_osint_graph',
+    sql: `
+-- OSINT (Этап 10): граф ПУБЛИЧНЫХ сущностей. Приватные лица не вносятся:
+-- для kind='person' публичная роль обязательна (CHECK на уровне схемы + тесты).
+CREATE TABLE osint_entities (
+  entity_id TEXT PRIMARY KEY,
+  kind TEXT NOT NULL CHECK (kind IN ('person','organization','company','media')),
+  name TEXT NOT NULL,
+  public_role TEXT,
+  description TEXT,
+  source_id TEXT NOT NULL REFERENCES sources(source_id),
+  verification_status TEXT NOT NULL DEFAULT 'UNVERIFIED',
+  data_mode TEXT NOT NULL DEFAULT 'SEED',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE(kind, name),
+  CHECK (kind != 'person' OR (public_role IS NOT NULL AND length(public_role) >= 3))
+);
+
+CREATE TABLE osint_events (
+  event_id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  event_date TEXT,
+  date_precision TEXT,
+  description TEXT,
+  source_id TEXT NOT NULL REFERENCES sources(source_id),
+  verification_status TEXT NOT NULL DEFAULT 'UNVERIFIED',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE TABLE osint_documents (
+  document_id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  published_date TEXT,
+  date_precision TEXT,
+  party_document_id TEXT,
+  url TEXT,
+  source_id TEXT NOT NULL REFERENCES sources(source_id),
+  verification_status TEXT NOT NULL DEFAULT 'UNVERIFIED',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+-- Заявления публичных сущностей: ссылки на существующие записи (без дублирования текстов).
+CREATE TABLE osint_statements (
+  statement_id TEXT PRIMARY KEY,
+  entity_id TEXT NOT NULL REFERENCES osint_entities(entity_id),
+  position_id TEXT,
+  document_id TEXT,
+  summary TEXT NOT NULL,
+  statement_date TEXT,
+  statement_category TEXT NOT NULL CHECK (statement_category IN ('OFFICIAL_PARTY_STATEMENT','PUBLIC_STATEMENT')),
+  source_id TEXT NOT NULL REFERENCES sources(source_id),
+  verification_status TEXT NOT NULL DEFAULT 'UNVERIFIED',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+-- Рёбра графа: БЕЗ evidence невозможны (NOT NULL + REFERENCES sources + тесты).
+CREATE TABLE osint_edges (
+  edge_id TEXT PRIMARY KEY,
+  src_entity_id TEXT NOT NULL REFERENCES osint_entities(entity_id),
+  relation TEXT NOT NULL CHECK (relation IN ('works_at','member_of','spoke_at','published','mentioned','associated_with','participated_in')),
+  dst_entity_id TEXT REFERENCES osint_entities(entity_id),
+  dst_document_id TEXT REFERENCES osint_documents(document_id),
+  dst_event_id TEXT REFERENCES osint_events(event_id),
+  dst_statement_id TEXT REFERENCES osint_statements(statement_id),
+  evidence TEXT NOT NULL CHECK (length(evidence) >= 5),
+  evidence_source_id TEXT NOT NULL REFERENCES sources(source_id),
+  evidence_url TEXT,
+  confidence TEXT NOT NULL DEFAULT 'MEDIUM' CHECK (confidence IN ('HIGH','MEDIUM','LOW')),
+  verification_status TEXT NOT NULL DEFAULT 'UNVERIFIED',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  CHECK (
+    (CASE WHEN dst_entity_id IS NOT NULL THEN 1 ELSE 0 END +
+     CASE WHEN dst_document_id IS NOT NULL THEN 1 ELSE 0 END +
+     CASE WHEN dst_event_id IS NOT NULL THEN 1 ELSE 0 END +
+     CASE WHEN dst_statement_id IS NOT NULL THEN 1 ELSE 0 END) = 1
+  ),
+  CHECK (
+    (relation IN ('works_at','member_of','associated_with') AND dst_entity_id IS NOT NULL) OR
+    (relation IN ('spoke_at','participated_in') AND dst_event_id IS NOT NULL) OR
+    (relation = 'published' AND (dst_document_id IS NOT NULL OR dst_statement_id IS NOT NULL)) OR
+    (relation = 'mentioned' AND (dst_statement_id IS NOT NULL OR dst_document_id IS NOT NULL OR dst_entity_id IS NOT NULL))
+  )
+);
+CREATE INDEX idx_osint_edges_src ON osint_edges(src_entity_id);
+CREATE INDEX idx_osint_edges_dst ON osint_edges(dst_entity_id);
+`
   }
 ];
 

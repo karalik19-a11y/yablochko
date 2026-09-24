@@ -43,6 +43,9 @@ export interface RouteDeps {
   electionsRegional: (q: Record<string, string>) => unknown;
   electionsCandidates: (q: Record<string, string>) => unknown;
   electionsPostmortem: (q: Record<string, string>) => unknown;
+  osintGraph: () => unknown;
+  osintEntity: (q: Record<string, string>) => unknown;
+  osintSearch: (q: Record<string, string>) => unknown;
   metaStatus: () => unknown;
 }
 
@@ -108,6 +111,9 @@ export function buildRoutes(deps: RouteDeps): RouteDef[] {
     { url: API.electionsRegional, handler: (q) => deps.electionsRegional(q) },
     { url: API.electionsCandidates, handler: (q) => deps.electionsCandidates(q) },
     { url: API.electionsPostmortem, handler: (q) => deps.electionsPostmortem(q) },
+    { url: API.osintGraph, handler: () => deps.osintGraph() },
+    { url: API.osintEntity, handler: (q) => deps.osintEntity(q) },
+    { url: API.osintSearch, handler: (q) => deps.osintSearch({ q: String(q.q ?? '') }) },
     { url: API.metaStatus, handler: deps.metaStatus }
   ];
 }

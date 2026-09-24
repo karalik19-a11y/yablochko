@@ -17,6 +17,7 @@ import { MetricsExplorer } from './screens/MetricsExplorer.js';
 import { CivicTrendsScreen } from './screens/CivicTrends.js';
 import { ElectionsScreen } from './screens/Elections.js';
 import { PostmortemScreen } from './screens/Postmortem.js';
+import { OsintScreen } from './screens/Osint.js';
 
 const IMPLEMENTED = new Set([
   'overview',
@@ -31,7 +32,8 @@ const IMPLEMENTED = new Set([
   'society',
   'civic-trends',
   'elections',
-  'postmortem'
+  'postmortem',
+  'osint'
 ]);
 
 export function App() {
@@ -98,6 +100,7 @@ export function App() {
         {route === 'civic-trends' && <CivicTrendsScreen />}
         {route === 'elections' && <ElectionsScreen />}
         {route === 'postmortem' && <PostmortemScreen />}
+        {route === 'osint' && <OsintScreen />}
         {route === 'yabloko-position' && <PositionsScreen />}
         {route === 'organization' && <OrganizationScreen />}
         {route === 'sources' && <SourcesScreen />}
