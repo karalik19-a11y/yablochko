@@ -65,6 +65,27 @@
 экран OVERVIEW отдаёт данные из SQLite; каждая партийная запись имеет source+date+статус;
 unit-тесты Registry (таймлайн-конфликты).
 
+**Результат:**
+- Монорепозиторий (npm workspaces): `packages/{domain,api-contract,data-access,ingest,ui,app}`,
+  `services/dev-api` (Fastify: API + статика SPA на одном порту), `apps/web-dev` (Vite-хот-хост);
+  toolchain: TS 5.9 strict, Vitest, ESLint 9 + typescript-eslint, Prettier.
+- Партийный контекст: сущности Party/PartyLeader/PartyBody/PartyDocument/PartyPosition/
+  PartyEvent/PartyCandidate/ElectionParticipation; SQLite-миграция `001_core_party_context`;
+  идемпотентный seed из `datasets/party/*` — все записи INITIAL CONTEXT со статусом
+  **UNVERIFIED** и обязательным source_id.
+- Party Position Registry (`@yabloko/domain`): чистые функции таймлайна —
+  CURRENT/SUPERSEDED/EXPIRED/UNVERIFIED (+документированное расширение FUTURE),
+  детерминированное разрешение конфликтов, конфликты фиксируются, история не удаляется.
+- Каркас автообновления: JobRunner с журналом `job_runs` (восстановление после рестарта)
+  и задача `party-context-refresh` — в среде без сети честно пишет
+  `network_unavailable` (виден на экране «Алерты»).
+- UI: shell с 18 разделами навигации, тёмная/светлая темы, палитра команд (Ctrl+K),
+  OVERVIEW с RUSSIA OVERVIEW + YABLOKO TODAY, реестр позиций, организация/документы,
+  Source Registry, Alert-каркас, настройки; пустые состояния с INSUFFICIENT DATA вместо
+  фиктивных данных; бейджи OFFICIAL PARTY STATEMENT / UNVERIFIED / SEED DATA.
+- Проверено: typecheck ✅, ESLint ✅, Vitest 33/33 ✅ (таймлайн, миграции/seed, планировщик,
+  доступность источников, интеграция API↔контракт), vite build ✅, runtime-проверка API+SPA ✅.
+
 ## Этап 3 — Источники России
 
 **Цель:** Source Registry + ingestion architecture.

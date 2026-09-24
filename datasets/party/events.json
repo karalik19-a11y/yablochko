@@ -1,0 +1,12 @@
+[
+  {
+    "event_id": "ev-2026-communication",
+    "title": "Актуальная политическая коммуникация 2026 («За мир и свободу!», «За жизнь без страха!»)",
+    "event_type": "communication",
+    "event_date": "2026-01-01",
+    "date_precision": "year",
+    "description": "Согласно INITIAL CONTEXT, данные лозунги определяют актуальную коммуникацию партии в 2026 году. Точная дата запуска коммуникации не верифицирована.",
+    "source_id": "initial-context",
+    "verification_status": "UNVERIFIED"
+  }
+]

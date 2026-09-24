@@ -1,0 +1,56 @@
+{
+  "meta": {
+    "note": "Позиции извлечены механически из INITIAL CONTEXT мастер-плана. AI не формулировал позиции самостоятельно. Все записи OFFICIAL PARTY STATEMENT, статус UNVERIFIED до подтверждения официальным документом. Точная дата принятия неизвестна — указан год с date_precision=year.",
+    "as_of": "2026-09-24"
+  },
+  "positions": [
+    {
+      "position_id": "pos-2026-mir",
+      "topic": "Мир и международные отношения",
+      "exact_position": "Соглашение о прекращении огня; дипломатия; достижение мира; предотвращение ядерной войны; сохранение жизни.",
+      "date_from": "2026-01-01",
+      "date_from_precision": "year",
+      "date_to": null,
+      "source_id": "initial-context",
+      "party_document_id": "yabloko-program-2026-key-provisions",
+      "confidence": "MEDIUM",
+      "verification_status": "UNVERIFIED"
+    },
+    {
+      "position_id": "pos-2026-prava-cheloveka",
+      "topic": "Права человека",
+      "exact_position": "Противодействие политическим репрессиям; права человека; человеческое достоинство.",
+      "date_from": "2026-01-01",
+      "date_from_precision": "year",
+      "date_to": null,
+      "source_id": "initial-context",
+      "party_document_id": "yabloko-program-2026-key-provisions",
+      "confidence": "MEDIUM",
+      "verification_status": "UNVERIFIED"
+    },
+    {
+      "position_id": "pos-2026-svobody",
+      "topic": "Свободы",
+      "exact_position": "Россия без страха; жизнь без страха (коммуникация 2026: «За жизнь без страха!»).",
+      "date_from": "2026-01-01",
+      "date_from_precision": "year",
+      "date_to": null,
+      "source_id": "initial-context",
+      "party_document_id": "yabloko-communication-2026-slogans",
+      "confidence": "MEDIUM",
+      "verification_status": "UNVERIFIED"
+    },
+    {
+      "position_id": "pos-2026-demokratiya",
+      "topic": "Политические институты",
+      "exact_position": "Процветающая демократическая Россия.",
+      "date_from": "2026-01-01",
+      "date_from_precision": "year",
+      "date_to": null,
+      "source_id": "initial-context",
+      "party_document_id": "yabloko-program-2026-key-provisions",
+      "confidence": "MEDIUM",
+      "verification_status": "UNVERIFIED"
+    }
+  ]
+}

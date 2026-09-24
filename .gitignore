@@ -1,0 +1,18 @@
+# dependencies
+node_modules/
+
+# build outputs
+dist/
+*.tsbuildinfo
+
+# runtime data (DB, object store, exports)
+var/
+
+# secrets & env
+.env
+.env.*
+
+# logs & misc
+*.log
+.DS_Store
+coverage/

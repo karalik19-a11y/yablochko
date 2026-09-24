@@ -6,8 +6,22 @@
 (только агрегаты), медиа и OSINT, партийные позиции и публичные документы, сценарное
 моделирование и AI-аналитик.
 
-**Статус:** Этап 1 (аудит и архитектурный фундамент) завершён. Разработка ведётся
-поэтапно — см. `docs/ROADMAP.md`.
+**Статус:** Этапы 1–2 завершены (аудит; монорепозиторий + Party Context Engine с
+Party Position Registry). Разработка ведётся поэтапно — см. `docs/ROADMAP.md`.
+
+## Запуск (разработка)
+
+```bash
+npm install
+npm run dev        # API (8787) + Vite dev-сервер (5173)
+npm run build      # typecheck + production-сборка SPA
+npm start          # собранный SPA + API на одном порту 8787
+npm test           # Vitest
+npm run lint       # ESLint
+```
+
+Требуется Node.js ≥ 22.13 (используется встроенный `node:sqlite`).
+База данных и runtime-файлы — в `var/` (вне git).
 
 ## Документация
 

@@ -1,0 +1,92 @@
+[
+  {
+    "source_id": "initial-context",
+    "name": "Master Prompt INITIAL CONTEXT (внутренний импорт)",
+    "owner": "YABLOKO INTELLIGENCE (internal)",
+    "url": null,
+    "source_type": "internal_initial_context",
+    "license": "internal",
+    "collection_method": "manual_import",
+    "coverage": "РОДП «ЯБЛОКО»: руководство, органы, программные положения и коммуникация 2026",
+    "period": "2026",
+    "update_frequency": "on_demand",
+    "reliability": {
+      "grade": "D",
+      "note": "Не является официальным источником. Каждая запись подлежит верификации по официальным документам партии (yabloko.ru и первоисточникам)."
+    },
+    "status": "active",
+    "update_policy": "Заменяется официальными источниками при первом успешном ingest (Этап 3); записи не удаляются, а получают верификацию"
+  },
+  {
+    "source_id": "yabloko-ru",
+    "name": "Официальный сайт РОДП «ЯБЛОКО» (yabloko.ru)",
+    "owner": "РОДП «ЯБЛОКО»",
+    "url": "https://yabloko.ru",
+    "source_type": "party_official",
+    "license": "согласно условиям использования сайта",
+    "collection_method": "http_fetch",
+    "coverage": "Официальные документы, заявления, пресс-релизы, руководство, региональные отделения",
+    "period": "актуальный",
+    "update_frequency": "daily",
+    "reliability": {
+      "grade": "A",
+      "note": "Официальный первоисточник партии (Yabloko Source Layer, приоритет 8 по Source Registry)"
+    },
+    "status": "planned",
+    "update_policy": "Подключается коннектором на Этапе 3; из песочницы разработки напрямую недоступен"
+  },
+  {
+    "source_id": "yabloko-regions",
+    "name": "Региональные отделения «ЯБЛОКО» (официальные сайты)",
+    "owner": "РОДП «ЯБЛОКО» (региональные отделения)",
+    "url": "https://yabloko.ru",
+    "source_type": "party_official_regional",
+    "license": "согласно условиям использования сайтов",
+    "collection_method": "http_fetch",
+    "coverage": "Региональные документы, мероприятия, кандидаты, активность отделений",
+    "period": "актуальный",
+    "update_frequency": "weekly",
+    "reliability": {
+      "grade": "A",
+      "note": "Официальные источники региональных отделений (Yabloko Source Layer)"
+    },
+    "status": "planned",
+    "update_policy": "Подключается на Этапе 3+ после федерального коннектора"
+  },
+  {
+    "source_id": "cik-rf",
+    "name": "Центральная избирательная комиссия Российской Федерации",
+    "owner": "ЦИК России",
+    "url": "http://www.cikrf.ru",
+    "source_type": "state_official",
+    "license": "официальные открытые данные",
+    "collection_method": "http_fetch",
+    "coverage": "Выборы федерального и регионального уровня, решения, кандидаты, результаты",
+    "period": "исторический и актуальный",
+    "update_frequency": "daily",
+    "reliability": {
+      "grade": "A",
+      "note": "Приоритет 2 по Source Registry (официальные государственные источники)"
+    },
+    "status": "planned",
+    "update_policy": "Подключается на Этапе 8 (Election Intelligence)"
+  },
+  {
+    "source_id": "rosstat",
+    "name": "Федеральная служба государственной статистики (Росстат)",
+    "owner": "Федеральная служба государственной статистики",
+    "url": "https://rosstat.gov.ru",
+    "source_type": "state_official",
+    "license": "официальные открытые данные",
+    "collection_method": "http_fetch",
+    "coverage": "Демография, экономика, занятость, доходы, жильё и другие территориальные показатели",
+    "period": "исторический и актуальный",
+    "update_frequency": "monthly",
+    "reliability": {
+      "grade": "A",
+      "note": "Приоритет 3 по Source Registry"
+    },
+    "status": "planned",
+    "update_policy": "Подключается на Этапе 5 (Population Intelligence)"
+  }
+]

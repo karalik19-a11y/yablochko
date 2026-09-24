@@ -1,0 +1,54 @@
+{
+  "party": {
+    "party_id": "yabloko",
+    "short_name": "ЯБЛОКО",
+    "full_name": "Российская объединённая демократическая партия «ЯБЛОКО»",
+    "status_note": "Запись создана из INITIAL CONTEXT мастер-плана; требует регулярной проверки по официальным источникам (Party Position Registry, Этап 3+).",
+    "source_id": "initial-context",
+    "verification_status": "UNVERIFIED"
+  },
+  "bodies": [
+    {
+      "body_id": "fpk",
+      "name": "Федеральный политический комитет",
+      "body_type": "federal_political_committee",
+      "description": "Орган партии, упоминаемый в INITIAL CONTEXT как источник официальных решений.",
+      "source_id": "initial-context",
+      "verification_status": "UNVERIFIED"
+    },
+    {
+      "body_id": "bureau",
+      "name": "Бюро партии",
+      "body_type": "bureau",
+      "description": "Орган партии, упоминаемый в INITIAL CONTEXT как источник официальных решений.",
+      "source_id": "initial-context",
+      "verification_status": "UNVERIFIED"
+    }
+  ],
+  "leaders": [
+    {
+      "leader_id": "rybakov-nikolay",
+      "person_name": "Николай Рыбаков",
+      "role_title": "Председатель партии",
+      "body_id": null,
+      "date_from": null,
+      "date_to": null,
+      "date_note": "Дата вступления в должность не верифицирована; запись актуальна на дату аудита 2026-09-24.",
+      "source_id": "initial-context",
+      "confidence": "MEDIUM",
+      "verification_status": "UNVERIFIED"
+    },
+    {
+      "leader_id": "yavlinsky-grigory",
+      "person_name": "Григорий Явлинский",
+      "role_title": "Федеральный политический комитет (точная роль уточняется при верификации)",
+      "body_id": "fpk",
+      "date_from": null,
+      "date_to": null,
+      "date_note": "Дата начала полномочий не верифицирована; запись актуальна на дату аудита 2026-09-24.",
+      "source_id": "initial-context",
+      "confidence": "MEDIUM",
+      "verification_status": "UNVERIFIED"
+    }
+  ]
+}
