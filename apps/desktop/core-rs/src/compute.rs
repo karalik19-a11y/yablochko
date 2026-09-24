@@ -110,7 +110,7 @@ pub fn decision_compute(conn: &Connection, query: &str) -> Result<Value, String>
     }
 
     // Полные шаблоны (с elasticity/indirect) — ресурс сборки.
-    let tpl_path = crate::resource_path("scenario_templates.json");
+    let tpl_path = crate::router::resource_path("scenario_templates.json");
     let raw = std::fs::read_to_string(&tpl_path)
         .map_err(|e| format!("templates read failed ({}): {e}", tpl_path.display()))?;
     let all: Value =
