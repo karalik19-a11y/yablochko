@@ -40,7 +40,20 @@ jobs:
         run: npx tsx scripts/build-desktop-resources.ts apps/desktop/core-rs/resources
 
       - name: Rust unit tests (golden Монте-Карло, поиски)
-        run: cargo test --manifest-path apps/desktop/core-rs/Cargo.toml --release
+        shell: bash
+        run: |
+          set -o pipefail
+          if ! cargo test --manifest-path apps/desktop/core-rs/Cargo.toml --release 2>&1 | tee cargo_test.log; then
+            echo "::error::cargo test failed"
+            grep -nE "^(error|warning: unused|test .* FAILED|failures:)" cargo_test.log | head -30 | while IFS=: read -r ln rest; do
+              echo "::error::L$ln ${rest:0:180}"
+            done
+            # фрагменты с контекстом ошибок — в аннотации (логи blob недоступны)
+            grep -nE "^error(\[E[0-9]+\])?:" -A 4 cargo_test.log | head -60 | while IFS= read -r line; do
+              echo "::error::${line:0:240}"
+            done
+            exit 1
+          fi
 
       - name: Tauri build (NSIS + MSI)
         working-directory: apps/desktop
