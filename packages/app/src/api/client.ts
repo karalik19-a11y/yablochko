@@ -57,3 +57,39 @@ export async function fetchEnvelope<T>(
   }
   return parsed.data.data;
 }
+
+/**
+ * POST с валидацией конверта { data, meta } — для ANALYST AI (ask/verify).
+ * Нарушение контракта — ошибка, не тихий сбой.
+ */
+export async function postEnvelope<T>(
+  url: string,
+  body: unknown,
+  schema: z.ZodType<T>
+): Promise<T> {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', accept: 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) {
+    throw new ApiError(`API ${url} ответил ${res.status}`, res.status);
+  }
+  let json: unknown;
+  try {
+    json = await res.json();
+  } catch {
+    throw new ApiError(`API ${url}: некорректный JSON`);
+  }
+  if (json !== null && typeof json === 'object' && 'error' in (json as Record<string, unknown>)) {
+    throw new ApiError(String((json as { error: unknown }).error));
+  }
+  const envelopeSchema = z.object({ data: schema, meta: ResponseMeta });
+  const parsed = envelopeSchema.safeParse(json);
+  if (!parsed.success) {
+    throw new ApiError(
+      `API ${url}: ответ нарушает контракт (${parsed.error.issues[0]?.message ?? 'schema mismatch'})`
+    );
+  }
+  return parsed.data.data;
+}

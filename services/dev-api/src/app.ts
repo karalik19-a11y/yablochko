@@ -79,6 +79,12 @@ import {
   type Db
 } from '@yabloko/data-access';
 import { searchDocuments } from '@yabloko/data-access';
+import {
+  askAnalyst,
+  analystStatus as computeAnalystStatus,
+  verifySources
+} from '@yabloko/copilot';
+import type { AnalystLlmConfig } from '@yabloko/copilot';
 import { computeRegistryTimeline, registryStats } from '@yabloko/domain';
 import type {
   MetaStatus,
@@ -105,6 +111,8 @@ export interface AppOptions {
   osintGraphPath?: string;
   mediaDatasetPath?: string;
   scenarioTemplatesPath?: string;
+  /** LLM-провайдер для ANALYST AI; без ключа — локальный degraded mode. */
+  analystLlm?: AnalystLlmConfig;
   /** Отключить генерацию SYNTHETIC-метрик. */
   disableSyntheticMetrics?: boolean;
   /** Отключить генерацию SYNTHETIC-агрегатов настроений. */
@@ -701,6 +709,43 @@ export async function buildApp(opts: AppOptions): Promise<AppHandle> {
         meta: metaFor('SEED', ['Сценарии сохраняются в Research Workspace (Decision Lab).'])
       };
     },
+    analystStatus: () => {
+      return {
+        data: computeAnalystStatus(opts.analystLlm),
+        meta: metaFor('SEED', [
+          'ANSWER/EVIDENCE/SOURCES/UNCERTAINTY; источники — только из Source Registry; инъекции в контенте не исполняются.'
+        ])
+      };
+    },
+    analystAsk: (body: Record<string, unknown>) => {
+      const raw = typeof body.question === 'string' ? body.question : '';
+      if (raw.trim().length < 3 || raw.length > 500) {
+        return { ok: false as const, error: 'question обязателен (3–500 символов)' };
+      }
+      return askAnalyst(db, raw, {
+        llm: opts.analystLlm,
+        mediaMethodology: mediaMethodology || MEDIA_SENTIMENT_METHODOLOGY_FALLBACK,
+        scenarioTemplates: scenarioTemplates?.templates ?? []
+      }).then((answer) => ({
+        data: answer,
+        meta: metaFor('SEED', [
+          'Ответ аналитика: категории FACT / PARTY STATEMENT / ANALYSIS / MODEL разведены.',
+          'Данные SYNTHETIC (grade D); модельные оценки — только «при предположениях…».'
+        ])
+      }));
+    },
+    analystVerify: (body: Record<string, unknown>) => {
+      const ids = Array.isArray(body.source_ids)
+        ? body.source_ids.filter((x): x is string => typeof x === 'string')
+        : [];
+      if (ids.length === 0) {
+        return { ok: false as const, error: 'source_ids обязателен (массив строк)' };
+      }
+      return {
+        data: verifySources(db, ids),
+        meta: metaFor('SEED', ['VERIFY SOURCES: сверка с Source Registry (URL, checksum, статус).'])
+      };
+    },
     civicOverview: (q: Record<string, string>) => {
       const geo = String(q.geo ?? '');
       if (!geo || !/^ru:[a-z_]+:[a-z0-9-_]+$/i.test(geo)) return null;
@@ -751,8 +796,8 @@ export async function buildApp(opts: AppOptions): Promise<AppHandle> {
   for (const r of routes) {
     if (r.method === 'POST') {
       app.post(r.url, async (req, reply) => {
-        const body = (req.body ?? {}) as { alert_id?: string };
-        const result = r.postHandler?.(body) ?? { ok: false };
+        const body = (req.body ?? {}) as Record<string, unknown>;
+        const result = (await r.postHandler?.(body)) ?? { ok: false };
         reply.send(result);
       });
     } else {

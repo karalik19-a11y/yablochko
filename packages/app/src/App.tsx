@@ -21,6 +21,7 @@ import { OsintScreen } from './screens/Osint.js';
 import { MediaScreen } from './screens/Media.js';
 import { DecisionLabScreen } from './screens/DecisionLab.js';
 import { ResearchScreen } from './screens/Research.js';
+import { AnalystScreen } from './screens/Analyst.js';
 
 const IMPLEMENTED = new Set([
   'overview',
@@ -73,6 +74,7 @@ export function App() {
     >
       <div key={route} className="fade-in">
         {route === 'overview' && <OverviewScreen onNavigate={navigate} />}
+        {route === 'analyst' && <AnalystScreen />}
         {route === 'territories' && (
           <TerritoriesScreen theme={theme} onNavigate={navigate} />
         )}

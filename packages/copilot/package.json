@@ -1,0 +1,19 @@
+{
+  "name": "@yabloko/copilot",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@yabloko/api-contract": "*",
+    "@yabloko/data-access": "*",
+    "zod": "^4.6.5"
+  }
+}

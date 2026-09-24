@@ -53,6 +53,9 @@ export interface RouteDeps {
   decisionTemplates: () => unknown;
   decisionCompute: (q: Record<string, string>) => unknown;
   decisionScenarios: (q: Record<string, string>) => unknown;
+  analystStatus: () => unknown;
+  analystAsk: (body: Record<string, unknown>) => unknown;
+  analystVerify: (body: Record<string, unknown>) => unknown;
   metaStatus: () => unknown;
 }
 
@@ -128,6 +131,19 @@ export function buildRoutes(deps: RouteDeps): RouteDef[] {
     { url: API.decisionTemplates, handler: () => deps.decisionTemplates() },
     { url: API.decisionCompute, handler: (q) => deps.decisionCompute(q) },
     { url: API.decisionScenarios, handler: (q) => deps.decisionScenarios(q) },
+    { url: API.analystStatus, handler: () => deps.analystStatus() },
+    {
+      url: API.analystAsk,
+      method: 'POST',
+      handler: () => ({}),
+      postHandler: (body) => deps.analystAsk(body)
+    },
+    {
+      url: API.analystVerify,
+      method: 'POST',
+      handler: () => ({}),
+      postHandler: (body) => deps.analystVerify(body)
+    },
     { url: API.metaStatus, handler: deps.metaStatus }
   ];
 }

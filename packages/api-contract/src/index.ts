@@ -12,6 +12,7 @@ export * from './postmortem.js';
 export * from './osint.js';
 export * from './media.js';
 export * from './decision.js';
+export * from './analyst.js';
 
 /** Маршруты API v1 (единый источник истины для клиента и сервера). */
 export const API = {
@@ -54,5 +55,8 @@ export const API = {
   mediaSources: '/api/v1/media/sources',
   decisionTemplates: '/api/v1/decision/templates',
   decisionCompute: '/api/v1/decision/compute',
-  decisionScenarios: '/api/v1/decision/scenarios'
+  decisionScenarios: '/api/v1/decision/scenarios',
+  analystStatus: '/api/v1/analyst/status',
+  analystAsk: '/api/v1/analyst/ask',
+  analystVerify: '/api/v1/analyst/verify'
 } as const;

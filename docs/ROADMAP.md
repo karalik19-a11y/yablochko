@@ -14,7 +14,7 @@
 | **M0 Foundation** | 1–3 | Аудит + ядро Party Context + Source Registry / ingestion | Этапы 1–3 ✅ |
 | **M1 Data Spine** | 4–5 | География, показатели территорий | Этапы 4–5 ✅ |
 | **M2 Analytics Core** | 6–8 | Настроения, Position Matrix, выборы | Этапы 6–8 ✅ |
-| **M3 Deep Modules** | 9–13 | Postmortem-2026, OSINT, медиа, Decision Lab, AI | Этапы 9–12 ✅ |
+| **M3 Deep Modules** | 9–13 | Postmortem-2026, OSINT, медиа, Decision Lab, AI | Этапы 9–13 ✅ |
 | **M4 Product Polish** | 14 | Премиум UX, целостность платформы | — |
 | **M5 Desktop Delivery** | 15–16 | Tauri Windows, Setup.exe, автообновления | — |
 | **M6 Hardening & Release** | 17–18 | Security audit, production audit, релиз | — |
@@ -456,6 +456,20 @@ methodology ≥ 40 символов в схеме. Экраны DECISION LAB (п
 **DoD:** тест-набор adversarial-промптов (инъекции из «документов» не выполняются);
 ответ всегда с источниками; без ключа провайдера — graceful degraded mode.
 
+**Статус: ✅ выполнен (2026-09-24).** Пакет `packages/copilot`: LlmProvider
+(openai-compatible / anthropic / локальный детерминированный), read-only
+инструменты над БД (сравнение регионов, динамика, медиатемы, источники,
+документы, FTS-поиск, сценарии), оркестратор с форматом
+ANSWER / EVIDENCE / SOURCES / UNCERTAINTY и кнопкой VERIFY SOURCES (сверка
+URL/checksum/статуса с Source Registry). Prompt-injection defense: статичный
+системный промпт, внешний контент только в сегменте <external_data>,
+детектор 12 паттернов (RU+EN) по вопросу И retrieved-контенту (полный
+text_excerpt, не сниппет), выход LLM валидируется схемой с откатом в локальный
+режим. Экран ANALYST AI: чипы канонических запросов, категорийные блоки
+FACT / OFFICIAL PARTY STATEMENT / ANALYSIS / MODEL, отчёт VERIFY SOURCES,
+честный баннер DEGRADED MODE без ключа. Тесты: 14 unit (включая adversarial:
+инъекция в «документе» не исполняется) + интеграционный.
+
 ## Этап 14 — Beautiful UX
 
 **Цель:** премиум-UI без изменения backend-логики.
@@ -520,4 +534,5 @@ launch → login → analysis → export → update → uninstall; финаль�
 | 10. OSINT | ✅ выполнен (граф публичных сущностей, evidence-рёбра, CHECK приватности) |
 | 11. Media Intelligence | ✅ выполнен (модель публикации, ярлыки только с методологией, Media Monitor) |
 | 12. Decision Lab / ALADDIN | ✅ выполнен (сценарный движок p10/p50/p90 «при предположениях…», каузальный линтер, Policy Lab на реестре позиций) |
-| 13–18 | — запланированы |
+| 13. AI Analyst | ✅ выполнен (packages/copilot: провайдеры, read-only инструменты, ANSWER/EVIDENCE/SOURCES/UNCERTAINTY, VERIFY SOURCES, injection defense, degraded mode) |
+| 14–18 | — запланированы |

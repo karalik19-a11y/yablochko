@@ -25,6 +25,7 @@ export const NAV: NavItem[] = [
   { key: 'elections', label: 'Выборы', group: 'Электорат', stage: null, description: 'Election Intelligence: результаты и явка с official_source; SYNTHETIC до импорта ЦИК (Этап 8)' },
   { key: 'media', label: 'Медиа', group: 'Информационная среда', stage: null, description: 'Media Monitor: упоминания, темы, доля с методологией; SYNTHETIC-корпус (Этап 11)' },
   { key: 'osint', label: 'OSINT', group: 'Информационная среда', stage: null, description: 'Граф публичных сущностей с evidence-рёбрами; приватные лица не вносятся (Этап 10)' },
+  { key: 'analyst', label: 'AI Analyst', group: 'Анализ', stage: 13, description: 'YABLOKO ANALYST AI: ANSWER/EVIDENCE/SOURCES/UNCERTAINTY, VERIFY SOURCES (Этап 13)' },
   { key: 'decision-lab', label: 'Decision Lab', group: 'Информационная среда', stage: null, description: 'ALADDIN: сценарии p10/p50/p90, только «при предположениях…» (Этап 12)' },
   { key: 'research', label: 'Research', group: 'Информационная среда', stage: 12, description: 'Исследовательские рабочие пространства (Этап 12)' },
   { key: 'organization', label: 'Организация', group: 'Партия', stage: null, description: 'Руководство, органы, документы, кандидаты' },

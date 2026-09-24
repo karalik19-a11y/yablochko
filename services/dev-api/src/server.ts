@@ -17,6 +17,14 @@ const { app } = await buildApp({
   osintGraphPath: process.env.OSINT_GRAPH ?? resolve(repoRoot, 'datasets/osint/osint_graph.json'),
   mediaDatasetPath: process.env.MEDIA_DATASET ?? resolve(repoRoot, 'datasets/media/media.json'),
   scenarioTemplatesPath: process.env.SCENARIO_TEMPLATES ?? resolve(repoRoot, 'datasets/decision/scenario_templates.json'),
+  analystLlm: process.env.ANALYST_LLM_API_KEY
+    ? {
+        provider: process.env.ANALYST_LLM_PROVIDER === 'anthropic' ? ('anthropic' as const) : ('openai-compatible' as const),
+        apiKey: process.env.ANALYST_LLM_API_KEY,
+        baseUrl: process.env.ANALYST_LLM_BASE_URL,
+        model: process.env.ANALYST_LLM_MODEL ?? 'gpt-4o-mini'
+      }
+    : undefined,
   staticDir: process.env.STATIC_DIR ?? resolve(repoRoot, 'apps/web-dev/dist'),
   version: '0.2.0',
   stage: 2,
