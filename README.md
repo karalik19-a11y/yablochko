@@ -18,6 +18,8 @@ npm run build      # typecheck + production-сборка SPA
 npm start          # собранный SPA + API на одном порту 8787
 npm test           # Vitest
 npm run lint       # ESLint
+npm run ingest -- --mode fixture   # ingestion pipeline (fixture-режим)
+npm run ingest -- --mode live      # live-режим (требует сети: CI/локально)
 ```
 
 Требуется Node.js ≥ 22.13 (используется встроенный `node:sqlite`).

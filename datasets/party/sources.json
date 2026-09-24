@@ -15,7 +15,7 @@
       "note": "Не является официальным источником. Каждая запись подлежит верификации по официальным документам партии (yabloko.ru и первоисточникам)."
     },
     "status": "active",
-    "update_policy": "Заменяется официальными источниками при первом успешном ingest (Этап 3); записи не удаляются, а получают верификацию"
+    "update_policy": "Заменяется официальными источниками при первом успешном ingest; записи не удаляются, а получают верификацию"
   },
   {
     "source_id": "yabloko-ru",
@@ -30,10 +30,10 @@
     "update_frequency": "daily",
     "reliability": {
       "grade": "A",
-      "note": "Официальный первоисточник партии (Yabloko Source Layer, приоритет 8 по Source Registry)"
+      "note": "Официальный первоисточник партии (Yabloko Source Layer, приоритет 8 по Source Registry). Коннектор подключён на Этапе 3."
     },
-    "status": "planned",
-    "update_policy": "Подключается коннектором на Этапе 3; из песочницы разработки напрямую недоступен"
+    "status": "active",
+    "update_policy": "Коннектор yabloko-ru: fixture-режим в песочнице, live-режим в CI/локально (ingest.yml)"
   },
   {
     "source_id": "yabloko-regions",
@@ -51,7 +51,7 @@
       "note": "Официальные источники региональных отделений (Yabloko Source Layer)"
     },
     "status": "planned",
-    "update_policy": "Подключается на Этапе 3+ после федерального коннектора"
+    "update_policy": "Подключается после федерального коннектора (перечень региональных сайтов — из официального реестра отделения)"
   },
   {
     "source_id": "cik-rf",
@@ -88,5 +88,95 @@
     },
     "status": "planned",
     "update_policy": "Подключается на Этапе 5 (Population Intelligence)"
+  },
+  {
+    "source_id": "data-gov-ru",
+    "name": "Портал государственных данных Российской Федерации",
+    "owner": "Минцифры России",
+    "url": "https://data.gov.ru",
+    "source_type": "state_official",
+    "license": "официальные открытые данные",
+    "collection_method": "http_fetch",
+    "coverage": "Открытые наборы данных органов власти",
+    "period": "актуальный",
+    "update_frequency": "weekly",
+    "reliability": {
+      "grade": "A",
+      "note": "Официальный портал открытых данных (приоритет 1)"
+    },
+    "status": "planned",
+    "update_policy": "Подключается после Rosstat/ЦИК по мере потребностей аналитических слоёв"
+  },
+  {
+    "source_id": "pravo-gov-ru",
+    "name": "Официальный интернет-портал правовой информации",
+    "owner": "ФСО России (оператор портала)",
+    "url": "http://pravo.gov.ru",
+    "source_type": "state_official",
+    "license": "официальные открытые данные",
+    "collection_method": "http_fetch",
+    "coverage": "Официальное опубликование нормативных актов, законы, избирательное законодательство",
+    "period": "исторический и актуальный",
+    "update_frequency": "daily",
+    "reliability": {
+      "grade": "A",
+      "note": "Официальное опубликование — первоисточник правовой информации (Legal Monitor, Этап 9)"
+    },
+    "status": "planned",
+    "update_policy": "Подключается на Этапе 9 (LEGAL / ELECTION MONITOR)"
+  },
+  {
+    "source_id": "sozd-duma-gov-ru",
+    "name": "СОЗД — автоматическая система законодательной деятельности Госдумы",
+    "owner": "Государственная Дума ФС РФ",
+    "url": "https://sozd.duma.gov.ru",
+    "source_type": "state_official",
+    "license": "официальные открытые данные",
+    "collection_method": "http_fetch",
+    "coverage": "Законопроекты, стадии рассмотрения, голосования депутатов",
+    "period": "исторический и актуальный",
+    "update_frequency": "daily",
+    "reliability": {
+      "grade": "A",
+      "note": "Официальная система парламента; полезна для Legal Monitor и анализа позиций"
+    },
+    "status": "planned",
+    "update_policy": "Подключается на Этапе 9 вместе с pravo-gov-ru"
+  },
+  {
+    "source_id": "vciom",
+    "name": "ВЦИОМ — Всероссийский центр изучения общественного мнения",
+    "owner": "ВЦИОМ",
+    "url": "https://wciom.ru",
+    "source_type": "polling",
+    "license": "использование агрегированных результатов с указанием источника и методологии",
+    "collection_method": "http_fetch",
+    "coverage": "Публикуемые агрегированные результаты опросов (вопросы, выборки, методология)",
+    "period": "исторический и актуальный",
+    "update_frequency": "weekly",
+    "reliability": {
+      "grade": "B",
+      "note": "Приоритет 7 (проверяемые опросы); используются только агрегаты с методологией, не микроданные"
+    },
+    "status": "planned",
+    "update_policy": "Подключается на Этапе 6–7 (Civic Intelligence / Position Matrix) с обязательной сноской методологии"
+  },
+  {
+    "source_id": "fom",
+    "name": "ФОМ — Фонд «Общественное мнение»",
+    "owner": "Фонд «Общественное мнение»",
+    "url": "https://fom.ru",
+    "source_type": "polling",
+    "license": "использование агрегированных результатов с указанием источника и методологии",
+    "collection_method": "http_fetch",
+    "coverage": "Публикуемые агрегированные результаты опросов",
+    "period": "исторический и актуальный",
+    "update_frequency": "weekly",
+    "reliability": {
+      "grade": "B",
+      "note": "Приоритет 7 (проверяемые опросы); только агрегаты с методологией"
+    },
+    "status": "planned",
+    "update_policy": "Подключается на Этапе 6–7 вместе с ВЦИОМ"
   }
 ]

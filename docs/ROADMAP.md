@@ -11,8 +11,8 @@
 
 | Веха | Этапы | Смысл | Состояние |
 |---|---|---|---|
-| **M0 Foundation** | 1–2 | Аудит + ядро Party Context + скелет монорепо | Этап 1 ✅, Этап 2 — следующий |
-| **M1 Data Spine** | 3–5 | Источники, география, показатели территорий | — |
+| **M0 Foundation** | 1–3 | Аудит + ядро Party Context + Source Registry / ingestion | Этапы 1–3 ✅ |
+| **M1 Data Spine** | 4–5 | География, показатели территорий | — |
 | **M2 Analytics Core** | 6–8 | Настроения, Position Matrix, выборы | — |
 | **M3 Deep Modules** | 9–13 | Postmortem-2026, OSINT, медиа, Decision Lab, AI | — |
 | **M4 Product Polish** | 14 | Премиум UX, целостность платформы | — |
@@ -40,7 +40,7 @@
 
 ---
 
-## Этап 2 — Ядро YABLOKO Context (СЛЕДУЮЩИЙ)
+## Этап 2 — Ядро YABLOKO Context ✅ (выполнен 2026-09-24)
 
 **Цель:** Party Context Engine + фундамент монорепозитория.
 
@@ -86,16 +86,41 @@ unit-тесты Registry (таймлайн-конфликты).
 - Проверено: typecheck ✅, ESLint ✅, Vitest 33/33 ✅ (таймлайн, миграции/seed, планировщик,
   доступность источников, интеграция API↔контракт), vite build ✅, runtime-проверка API+SPA ✅.
 
-## Этап 3 — Источники России
+## Этап 3 — Источники России ✅ (выполнен 2026-09-24)
 
 **Цель:** Source Registry + ingestion architecture.
 **Объём:** connector interface (fetch/parse/verify), реестр с метаданными (license,
 update_frequency, checksum…), ingestion jobs + retry + логи + validation + dedup;
-5–10 качественных источников (Росстат, ЦИК, официальный сайт партии, региональные
-официальные, научные открытые датасеты). Исполнение коннекторов — CI (`ingest.yml`) и
+5–10 качественных источников. Исполнение коннекторов — CI (`ingest.yml`) и
 локально; в песочнице — контрактные тесты на fixture-снимках.
 **DoD:** pipeline DISCOVER→…→INDEX проходит на fixtures; retry/dedup покрыты тестами;
 Alert SOURCE_FAILURE работает; ни одна запись без provenance.
+
+**Результат:**
+- Полный pipeline 9 стадий (DISCOVER → FETCH → VERIFY → PARSE → CLASSIFY →
+  EXTRACT → VERSION → STORE → INDEX) с журналом `ingestion_runs`/`ingestion_events`.
+- HTTP-слой: retry с экспоненциальной паузой ± jitter (сеть/таймаут/5xx/429),
+  SSRF-защита — allowlist хоста источника проверяется на каждом редиректе
+  (`redirect: manual`), лимит размера, таймаут, запрет учётных данных в URL.
+- Хранилище: `source_snapshots` (неизменяемые, content-addressable) →
+  `documents` с дедупликацией по (source_id, content_sha256) и версионированием
+  по URL; FTS5-индекс (поиск `?q=`); обновление source.last_update/checksum.
+- Классификация: weighted-скоринг по URL/заголовку/тексту (program, statement,
+  decision, press_release, election, position, index).
+- Alert Center: NEW_PARTY_DOCUMENT (при новых партийных документах),
+  SOURCE_FAILURE (при полном провале источника, статус → failed); acknowledge API
+  + экран алертов.
+- Реестр: 10 источников по приоритетам (партийные 2, гос- 5: ЦИК/Росстат/
+  data.gov.ru/pravo.gov.ru/СОЗД, опросы 2: ВЦИОМ/ФОМ, внутренний 1); коннектор
+  `yabloko-ru` (Yabloko Source Layer) полностью работает: fixture-режим в песочнице,
+  live — в CI/локально.
+- CLI: `npm run ingest -- --mode live|fixture [--source id]`.
+- CI: `.github/workflows/ci.yml` (typecheck/lint/test/build на каждый push) и
+  `.github/workflows/ingest.yml` (ежедневный cron + ручной запуск, артефакты
+  хранилища).
+- Проверено: typecheck ✅, ESLint ✅, Vitest 41/41 ✅ (pipeline на fixtures,
+  retry, SSRF-guard, редиректы, дедупликация, версии, FTS, алерты), build ✅,
+  runtime: 4 fixture-документа в БД, поиск, алерты, acknowledge ✅.
 
 ## Этап 4 — Географическая база
 
@@ -245,5 +270,7 @@ launch → login → analysis → export → update → uninstall; финаль�
 | Этап | Статус |
 |---|---|
 | 1. Audit | ✅ завершён (2026-09-24) |
-| 2. YABLOKO Context | ⏭ следующий |
-| 3–18 | — запланированы |
+| 2. YABLOKO Context | ✅ завершён (2026-09-24) |
+| 3. Источники России | ✅ завершён (2026-09-24) |
+| 4. Географическая база | ⏭ следующий |
+| 5–18 | — запланированы |

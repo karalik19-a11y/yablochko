@@ -19,6 +19,7 @@
     "dev:web": "vite --config apps/web-dev/vite.config.ts",
     "build": "npm run typecheck && vite build --config apps/web-dev/vite.config.ts",
     "start": "NODE_OPTIONS=--no-warnings tsx services/dev-api/src/server.ts",
+    "ingest": "NODE_OPTIONS=--no-warnings tsx packages/ingest/src/cli.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint .",

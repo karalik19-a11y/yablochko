@@ -1,0 +1,49 @@
+name: Ingest
+
+# Регулярный сбор данных из Source Registry (Этап 3+).
+# В CI есть полный доступ к сети — коннекторы работают в live-режиме.
+# В песочнице разработки используется fixture-режим (npm run ingest).
+
+on:
+  schedule:
+    - cron: '0 6 * * *' # ежедневно 06:00 UTC
+  workflow_dispatch:
+    inputs:
+      source:
+        description: 'source_id (пусто = все зарегистрированные коннекторы)'
+        required: false
+        default: ''
+      mode:
+        description: 'live | fixture'
+        required: false
+        default: 'live'
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ingestion pipeline
+        run: |
+          ARGS="--mode=${{ github.event.inputs.mode || 'live' }}"
+          if [ -n "${{ github.event.inputs.source }}" ]; then
+            ARGS="$ARGS --source=${{ github.event.inputs.source }}"
+          fi
+          npm run ingest -- $ARGS
+
+      - name: Upload data store (snapshots, runs, alerts)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ingestion-store-${{ github.run_id }}
+          path: var/
+          retention-days: 30
+          if-no-files-found: warn

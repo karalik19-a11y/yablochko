@@ -1,5 +1,6 @@
 import type { Db } from '../db.js';
 import type { Source } from '@yabloko/api-contract';
+import { lastRunFor, sourceCounters } from './ingestion.js';
 
 function str(v: unknown): string | null {
   return v === null || v === undefined ? null : String(v);
@@ -21,8 +22,11 @@ export function listSources(db: Db): Source[] {
         // повреждённый JSON не должен ронять API
       }
     }
+    const sourceId = str(r.source_id) ?? '';
+    const run = lastRunFor(db, sourceId);
+    const counters = sourceCounters(db, sourceId);
     return {
-      source_id: str(r.source_id) ?? '',
+      source_id: sourceId,
       name: str(r.name) ?? '',
       owner: str(r.owner),
       url: str(r.url),
@@ -36,7 +40,17 @@ export function listSources(db: Db): Source[] {
       status: (str(r.status) ?? 'planned') as Source['status'],
       update_policy: str(r.update_policy),
       last_update: str(r.last_update),
-      checksum: str(r.checksum)
+      checksum: str(r.checksum),
+      last_run: run
+        ? {
+            status: run.status,
+            started_at: run.started_at,
+            finished_at: run.finished_at,
+            mode: run.mode,
+            detail: run.detail
+          }
+        : null,
+      counters
     };
   });
 }

@@ -17,6 +17,22 @@ export class ApiError extends Error {
   }
 }
 
+export async function postJson(
+  url: string,
+  body: unknown
+): Promise<{ ok: boolean; error?: string }> {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  try {
+    return (await res.json()) as { ok: boolean; error?: string };
+  } catch {
+    return { ok: res.ok };
+  }
+}
+
 export async function fetchEnvelope<T>(
   url: string,
   schema: z.ZodType<T>,

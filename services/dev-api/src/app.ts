@@ -17,8 +17,12 @@ import {
   listParticipation,
   listSources,
   getMetaStatus,
+  listSourceDocuments,
+  listAlerts,
+  acknowledgeAlert,
   type Db
 } from '@yabloko/data-access';
+import { searchDocuments } from '@yabloko/data-access';
 import { computeRegistryTimeline, registryStats } from '@yabloko/domain';
 import type {
   MetaStatus,
@@ -46,7 +50,7 @@ export interface AppOptions {
 }
 
 export const DATA_MODE_NOTE =
-  'Данные заполнены seed-набором из INITIAL CONTEXT мастер-плана. Все записи имеют статус UNVERIFIED до подключения официальных источников (Этап 3). Система не выдаёт их за верифицированные данные.';
+  'Данные заполнены seed-набором из INITIAL CONTEXT мастер-плана. Все записи имеют статус UNVERIFIED до подключения официальных источников. Документы источников с fetch_mode=fixture — синтетические тест-снимки.';
 
 export interface AppHandle {
   app: FastifyInstance;
@@ -77,13 +81,10 @@ export async function buildApp(opts: AppOptions): Promise<AppHandle> {
   const timers: NodeJS.Timeout[] = [];
 
   if (!opts.disableJobs) {
-    // --- Фоновая задача: проверка партийных источников (каркас Этапа 3) ---
+    // --- Фоновая задача: проверка партийных источников ---
     const runner = new JobRunner(db);
-    runner.register(
-      createPartyContextRefreshJob(db, { fetchImpl: opts.fetchImpl })
-    );
+    runner.register(createPartyContextRefreshJob(db, { fetchImpl: opts.fetchImpl }));
     runner.restoreFromLog();
-    // Первый запуск сразу, затем проверка раз в минуту.
     void runner.runDue();
     timers.push(
       setInterval(() => {
@@ -158,12 +159,7 @@ export async function buildApp(opts: AppOptions): Promise<AppHandle> {
     },
     candidates: () => {
       const items: PartyCandidate[] = listCandidates(db);
-      const meta = metaFor('SEED', [
-        items.length === 0
-          ? 'INSUFFICIENT DATA: сведений о кандидатах нет (появятся на Этапе 8).'
-          : ''
-      ]);
-      return { data: { items }, meta };
+      return { data: { items }, meta: metaFor('SEED') };
     },
     participation: () => {
       const items: ElectionParticipation[] = listParticipation(db);
@@ -171,8 +167,41 @@ export async function buildApp(opts: AppOptions): Promise<AppHandle> {
     },
     sources: () => {
       const sources: Source[] = listSources(db);
-      return { data: { sources }, meta: metaFor('SEED') };
+      const warnings = [
+        'Коннекторы исполняются в fixture-режиме (песочница без сети) или live (CI/локально).',
+        ...unverifiedWarnings(0, 1).slice(0, 0)
+      ];
+      return { data: { sources }, meta: metaFor('SEED', warnings) };
     },
+    sourceDocuments: (query: { source?: string; limit?: number; offset?: number }) => {
+      const page = listSourceDocuments(db, {
+        sourceId: query.source,
+        limit: query.limit,
+        offset: query.offset
+      });
+      return {
+        data: {
+          items: page.items,
+          total: page.total,
+          limit: Math.min(Math.max(query.limit ?? 50, 1), 200),
+          offset: Math.max(query.offset ?? 0, 0)
+        },
+        meta: metaFor('SEED')
+      };
+    },
+    documentSearch: (query: { q?: string }) => {
+      const q = (query.q ?? '').slice(0, 200);
+      return { data: { query: q, hits: searchDocuments(db, q, 20) }, meta: metaFor('SEED') };
+    },
+    alerts: (query: { openOnly?: string }) => {
+      const openOnly = query.openOnly === 'true';
+      const alerts = listAlerts(db, 100, openOnly);
+      const openRow = db
+        .prepare(`SELECT COUNT(*) AS n FROM alerts WHERE acknowledged_at IS NULL`)
+        .get() as { n: number };
+      return { data: { alerts, openCount: Number(openRow.n) }, meta: metaFor('SEED') };
+    },
+    acknowledge: (alertId: string) => acknowledgeAlert(db, alertId),
     metaStatus: () => {
       const status: MetaStatus = getMetaStatus(
         db,
@@ -188,12 +217,21 @@ export async function buildApp(opts: AppOptions): Promise<AppHandle> {
   });
 
   for (const r of routes) {
-    app.get(r.url, async (_req, reply) => {
-      reply.send(r.handler());
-    });
+    if (r.method === 'POST') {
+      app.post(r.url, async (req, reply) => {
+        const body = (req.body ?? {}) as { alert_id?: string };
+        const result = r.postHandler?.(body) ?? { ok: false };
+        reply.send(result);
+      });
+    } else {
+      app.get(r.url, async (req, reply) => {
+        const q = (req.query ?? {}) as Record<string, string>;
+        reply.send(r.handler(q));
+      });
+    }
   }
 
-  // --- Статика собранного SPA (для single-port preview/production-lite) ---
+  // --- Статика собранного SPA ---
   if (opts.staticDir && existsSync(opts.staticDir)) {
     await app.register(fastifyStatic, { root: opts.staticDir });
     app.setNotFoundHandler((req, reply) => {
@@ -221,4 +259,3 @@ export async function buildApp(opts: AppOptions): Promise<AppHandle> {
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
 }
-

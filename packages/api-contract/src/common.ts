@@ -62,7 +62,20 @@ export const Source = z.object({
   status: z.enum(['planned', 'active', 'failed', 'retired']),
   update_policy: z.string().nullable(),
   last_update: IsoDateTime.nullable(),
-  checksum: z.string().nullable()
+  checksum: z.string().nullable(),
+  last_run: z
+    .object({
+      status: z.string(),
+      started_at: IsoDateTime,
+      finished_at: z.string().nullable(),
+      mode: z.string(),
+      detail: z.string().nullable()
+    })
+    .nullable(),
+  counters: z.object({
+    documents: z.number().int().nonnegative(),
+    snapshots: z.number().int().nonnegative()
+  })
 });
 
 export type Source = z.infer<typeof Source>;

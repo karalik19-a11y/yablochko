@@ -5,3 +5,5 @@ export * from './seedLoader.js';
 export * from './repositories/party.js';
 export * from './repositories/sources.js';
 export * from './repositories/meta.js';
+export * from './repositories/ingestion.js';
+export * from './repositories/alerts.js';

@@ -28,6 +28,18 @@ export interface JobDefinition {
   execute: () => Promise<{ status: JobStatus; detail?: string }>;
 }
 
+/** Сигнатура функции загрузки страницы (инжектится: live/fixture/тесты). */
+export type FetchPageFn = (url: string, registeredUrl: string | null) => Promise<{
+  outcome: 'ok' | 'http_error' | 'timeout' | 'network_unavailable' | 'redirect_blocked' | 'url_blocked' | 'too_large';
+  httpStatus: number | null;
+  body: string | null;
+  mime: string | null;
+  sizeBytes: number;
+  durationMs: number;
+  detail: string;
+  finalUrl: string;
+}>;
+
 /** Результат проверки доступности источника. */
 export interface AccessCheckResult {
   outcome: 'ok' | 'http_error' | 'timeout' | 'network_unavailable';

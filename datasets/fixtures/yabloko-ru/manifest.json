@@ -1,0 +1,7 @@
+{
+  "_note": "Манифест fixture-снимков для коннектора yabloko-ru. Синтетические файлы для тестов pipeline; выдаются за fetch_mode=fixture и никогда не считаются живыми данными.",
+  "https://yabloko.ru/": "home.html",
+  "https://yabloko.ru/docs/program-2026": "program.html",
+  "https://yabloko.ru/news/statement-2026-06": "statement.html",
+  "https://yabloko.ru/news/press-release-2026-05": "release.html"
+}
