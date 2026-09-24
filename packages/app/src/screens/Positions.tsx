@@ -16,6 +16,7 @@ import { API, PartyPosition as PartyPositionSchema } from '@yabloko/api-contract
 import type { PartyPosition } from '@yabloko/api-contract';
 import { z } from 'zod';
 import { useApi } from '../api/hooks.js';
+import { PositionMatrixView } from './PositionMatrix.js';
 
 const PositionsEnvelope = z.object({
   positions: z.array(PartyPositionSchema),
@@ -36,6 +37,7 @@ const PositionsEnvelope = z.object({
 type PositionsData = z.infer<typeof PositionsEnvelope>;
 
 export function PositionsScreen() {
+  const [tab, setTab] = useState<'registry' | 'matrix'>('registry');
   const [showHistory, setShowHistory] = useState(true);
   const state = useApi<PositionsData>(API.partyPositions, PositionsEnvelope);
 
@@ -51,15 +53,26 @@ export function PositionsScreen() {
         <div className="section-sub">
           Официальные позиции партии по темам с временно́й шкалой. Позиции —{' '}
           <strong>официальные заявления партии</strong>, а не факты и не мнение
-          общества. Полная матрица «позиция ↔ общественное мнение» — Этап 7.
+          общества.
         </div>
       </div>
 
-      {state.status === 'loading' && <Skeleton h={200} />}
-      {state.status === 'error' && (
+      <div className="row wrap">
+        <button className={`btn small ${tab === 'registry' ? 'primary' : ''}`} onClick={() => setTab('registry')}>
+          РЕЕСТР
+        </button>
+        <button className={`btn small ${tab === 'matrix' ? 'primary' : ''}`} onClick={() => setTab('matrix')}>
+          МАТРИЦА «ПОЗИЦИЯ ↔ МНЕНИЕ»
+        </button>
+      </div>
+
+      {tab === 'matrix' && <PositionMatrixView />}
+
+      {tab === 'registry' && state.status === 'loading' && <Skeleton h={200} />}
+      {tab === 'registry' && state.status === 'error' && (
         <ErrorBox message={`Реестр позиций недоступен: ${state.error}`} onRetry={state.reload} />
       )}
-      {state.status === 'ready' && state.data && (
+      {tab === 'registry' && state.status === 'ready' && state.data && (
         <>
           <div className="row wrap">
             <Badge tone="accent">CURRENT: {state.data.stats.current}</Badge>

@@ -13,7 +13,7 @@
 |---|---|---|---|
 | **M0 Foundation** | 1–3 | Аудит + ядро Party Context + Source Registry / ingestion | Этапы 1–3 ✅ |
 | **M1 Data Spine** | 4–5 | География, показатели территорий | Этапы 4–5 ✅ |
-| **M2 Analytics Core** | 6–8 | Настроения, Position Matrix, выборы | Этап 6 ✅ |
+| **M2 Analytics Core** | 6–8 | Настроения, Position Matrix, выборы | Этапы 6–7 ✅ |
 | **M3 Deep Modules** | 9–13 | Postmortem-2026, OSINT, медиа, Decision Lab, AI | — |
 | **M4 Product Polish** | 14 | Премиум UX, целостность платформы | — |
 | **M5 Desktop Delivery** | 15–16 | Tauri Windows, Setup.exe, автообновления | — |
@@ -236,7 +236,7 @@ Positive/Neutral/Negative/Mixed/Unclear, sample size, INSUFFICIENT DATA при �
   lint/typecheck/build ✅, runtime: страна 14 тем (rising +55% foreign_policy,
   declining −31% corruption), Сахалин 6 тем INSUFFICIENT, инъекция → 404 ✅.
 
-## Этап 7 — YABLOKO Position Matrix
+## Этап 7 — YABLOKO Position Matrix ✅ (выполнен 2026-09-24)
 
 **Цель:** позиция партии ↔ общественное мнение.
 **Объём:** матрица: строки — вопросы, колонки — Yabloko Position / Public Opinion /
@@ -245,6 +245,35 @@ OVERLAP/DIVERGENCE/UNCERTAINTY; формулировки «наблюдаетс�
 совпадение…»; никаких политических рекомендаций.
 **DoD:** экран YABLOKO POSITION на seed-данных с полным provenance; тесты на смешение
 категорий (позиция ≠ мнение) отсутствуют в коде.
+
+**Результат:**
+- Связи тем с позициями и показателями: `datasets/civic/topic_links.json` (14 связей:
+  мир/внешняя политика → «Мир и международные отношения», права человека, МСУ/коррупция →
+  «Политические институты»; экономики/социальные темы → метрики Этапа 5 без позиций;
+  для транспорта/экологии Regional Data честно пуст — показателей в каталоге нет).
+  Зафиксированы правила сопоставления и глобальные category_rules.
+- Репозиторий `packages/data-access/matrix.ts`: `loadTopicLinks` (zod) +
+  `computePositionMatrix` — строки по всем 14 темам; блоки жёстко разведены по категориям:
+  ПОЗИЦИЯ ПАРТИИ (реестр, OFFICIAL_PARTY_STATEMENT, дата/источник/документ/UNVERIFIED),
+  ОБЩЕСТВЕННОЕ МНЕНИЕ (АНАЛИЗ: агрегаты настроений, доля негатива/позитива, тренд темы),
+  РЕГИОНАЛЬНЫЕ ДАННЫЕ (ФАКТ: значения метрик + тренд), СОПОСТАВЛЕНИЕ (МОДЕЛЬ):
+  agenda_overlap («Наблюдается совпадение повестки…»), agenda_divergence («Не наблюдается
+  документированной позиции…»), uncertainty (INSUFFICIENT DATA, n < k_min). Совпадение
+  позиций (согласие) никогда не вычисляется из тональности; позиции без связи с темами
+  не теряются (unlinked_positions). Рекомендации не формируются.
+- API `GET /api/v1/positions/matrix?geo=&months=` (валидация geo, инъекции → 404) +
+  контракт `PositionMatrix` (api-contract/matrix.ts).
+- UI: экран YABLOKO POSITION → табы РЕЕСТР / МАТРИЦА. Матрица: счётчики статусов,
+  колонки-блоки с бейджами категорий (ЗАЯВЛЕНИЕ ПАРТИИ / АНАЛИЗ·SYN / ФАКТ·SYN /
+  AGENDA OVERLAP / DIVERGENCE / UNCERTAINTY), формулировки-констатации, панель
+  «ПРАВИЛА СОПОСТАВЛЕНИЯ» с category_rules (не смешивать ФАКТ/ЗАЯВЛЕНИЕ/АНАЛИЗ/МОДЕЛЬ).
+- СТРАЖ-тесты несмешения категорий: opinion-блок не содержит текстов и id позиций;
+  position-блок не содержит полей мнения; agenda_overlap только при наличии позиции;
+  категория позиции всегда OFFICIAL_PARTY_STATEMENT.
+- Проверено: Vitest 105/105 (матрица: правила, формулировки, стражи категорий,
+  unlinked, детерминизм; интеграция контракта), lint/typecheck/build ✅, runtime:
+  страна 14 строк (5 overlap / 9 divergence), «Свободы» в unlinked, региональные
+  блоки (доходы/бедность у цен), инъекция → 404 ✅.
 
 ## Этап 8 — Election Intelligence
 
@@ -361,4 +390,5 @@ launch → login → analysis → export → update → uninstall; финаль�
 | 4. Географическая база | ✅ завершён (2026-09-24) |
 | 5. Population Intelligence | ✅ завершён (2026-09-24) |
 | 6. Civic Intelligence | ✅ выполнен (агрегат-only pipeline, k-анонимность, CIVIC TRENDS) |
-| 7–18 | — запланированы |
+| 7. YABLOKO Position Matrix | ✅ выполнен (матрица категорий, OVERLAP/DIVERGENCE/UNCERTAINTY, стражи несмешения) |
+| 8–18 | — запланированы |

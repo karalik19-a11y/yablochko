@@ -33,6 +33,8 @@ import {
   storeCivicAggregates,
   syntheticCivicPresent,
   getCivicOverview,
+  loadTopicLinks,
+  computePositionMatrix,
   getPartyContext,
   listPositionsComputed,
   listDocuments,
@@ -69,6 +71,7 @@ export interface AppOptions {
   geoDatasetPath?: string;
   metricsCatalogPath?: string;
   civicTopicsPath?: string;
+  positionLinksPath?: string;
   /** Отключить генерацию SYNTHETIC-метрик. */
   disableSyntheticMetrics?: boolean;
   /** Отключить генерацию SYNTHETIC-агрегатов настроений. */
@@ -140,6 +143,7 @@ export async function buildApp(opts: AppOptions): Promise<AppHandle> {
 
   // --- База данных: migrate + seed (идемпотентно) ---
   let civicMethodology = '';
+  let topicLinks = null as ReturnType<typeof loadTopicLinks> | null;
   const db = openDb(opts.dbPath);
   const mig = migrate(db);
   if (mig.appliedIds.length > 0) {
@@ -169,6 +173,7 @@ export async function buildApp(opts: AppOptions): Promise<AppHandle> {
     const civic = loadCivicTopics(opts.civicTopicsPath);
     seedCivicTopics(db, civic);
     civicMethodology = civic.meta.methodology;
+    if (opts.positionLinksPath) topicLinks = loadTopicLinks(opts.positionLinksPath);
     if (!opts.disableSyntheticCivic && !syntheticCivicPresent(db)) {
       const rf = loadRfGeoFile(opts.geoDatasetPath ?? resolvePath(repoRootGuess(), 'datasets/geo/rf.json'));
       const subjects = rf.subjects.map((s0) => ({ geo_id: s0.geo_id }));
@@ -385,6 +390,26 @@ export async function buildApp(opts: AppOptions): Promise<AppHandle> {
       return {
         data: chain,
         meta: metaFor('SEED', ['Цепочка доказательств: VALUE → DATASET → SOURCE → METHODOLOGY.'])
+      };
+    },
+    positionsMatrix: (q: Record<string, string>) => {
+      if (!topicLinks) return null;
+      const geo = String(q.geo ?? 'ru:country:ru');
+      if (!/^ru:[a-z_]+:[a-z0-9-_]+$/i.test(geo)) return null;
+      const monthsRaw = Number(q.months ?? 12);
+      const months = Number.isFinite(monthsRaw) ? Math.min(Math.max(Math.round(monthsRaw), 3), 36) : 12;
+      const matrix = computePositionMatrix(db, {
+        links: topicLinks,
+        geoId: geo,
+        months,
+        methodology: civicMethodology || undefined
+      });
+      return {
+        data: matrix,
+        meta: metaFor('SEED', [
+          'Категории разведены: позиция — OFFICIAL PARTY STATEMENT; настроения — ANALYSIS (SYNTHETIC); показатели — FACT (SYNTHETIC); сопоставление — MODEL.',
+          'Совпадение позиций (согласие) не оценивается: тональность темы ≠ поддержка позиции. Матрица не содержит рекомендаций.'
+        ])
       };
     },
     civicOverview: (q: Record<string, string>) => {

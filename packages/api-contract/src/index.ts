@@ -6,6 +6,7 @@ export * from './documents.js';
 export * from './geo.js';
 export * from './metrics.js';
 export * from './civic.js';
+export * from './matrix.js';
 
 /** Маршруты API v1 (единый источник истины для клиента и сервера). */
 export const API = {
@@ -31,5 +32,6 @@ export const API = {
   metricsMap: '/api/v1/metrics/map',
   metricsCompare: '/api/v1/metrics/compare',
   metricsTrust: '/api/v1/metrics/trust',
-  civicOverview: '/api/v1/civic/overview'
+  civicOverview: '/api/v1/civic/overview',
+  positionsMatrix: '/api/v1/positions/matrix'
 } as const;

@@ -1,0 +1,107 @@
+{
+  "meta": {
+    "note": "Связи тем общественных настроений (Этап 6) с позициями партийного реестра (Этап 2) и территориальными показателями (Этап 5). Связь — модельная (MODEL): она определяет, КАКИЕ данные сопоставляются в матрице, но не утверждает совпадения позиций. Позиции берутся только из официального реестра (OFFICIAL PARTY STATEMENT); AI не формулировал и не дополнял позиции.",
+    "methodology": "Position Matrix: строки — темы настроений; блоки строки жёстко разведены по категориям: OFFICIAL PARTY STATEMENT (реестр позиций, с датой/источником/статусом верификации), ANALYSIS (агрегаты Civic Sentiment Engine — тональность темы, не согласие с позицией), FACT (региональные показатели, SYNTHETIC до импорта официальной статистики), MODEL (сопоставление по правилам ниже). Совпадение позиций (согласие общества с позицией) никогда не вычисляется из тональности: для этого нужны прямые измерения согласия (опросы), которых нет в данных.",
+    "comparison_rules": "agenda_overlap — тема статистически значима (last3_n >= k_min) И в реестре есть актуальная документированная позиция по связанной теме; agenda_divergence — тема статистически значима, но документированной позиции нет; uncertainty — выборка ниже k_min или данных нет. Статус всегда сопровождается формулировкой «наблюдается / не наблюдается совпадение повестки» и оговоркой, что согласие с позицией не оценивается. Матрица не содержит политических рекомендаций."
+  },
+  "links": [
+    {
+      "link_id": "link-peace",
+      "civic_topic_id": "peace",
+      "position_topic": "Мир и международные отношения",
+      "metric_codes": [],
+      "note": "Прямая тематическая связь: тема «мир» и позиция о прекращении огня и дипломатии."
+    },
+    {
+      "link_id": "link-foreign-policy",
+      "civic_topic_id": "foreign_policy",
+      "position_topic": "Мир и международные отношения",
+      "metric_codes": [],
+      "note": "Связь через позицию по международным отношениям."
+    },
+    {
+      "link_id": "link-human-rights",
+      "civic_topic_id": "human_rights",
+      "position_topic": "Права человека",
+      "metric_codes": [],
+      "note": "Прямая тематическая связь."
+    },
+    {
+      "link_id": "link-local-gov",
+      "civic_topic_id": "local_gov",
+      "position_topic": "Политические институты",
+      "metric_codes": [],
+      "note": "Связь через позицию о демократических институтах (местное самоуправление — часть институтов)."
+    },
+    {
+      "link_id": "link-corruption",
+      "civic_topic_id": "corruption",
+      "position_topic": "Политические институты",
+      "metric_codes": [],
+      "note": "Повесточная связь: качество институтов. Позиция реестра не содержит конкретных антикоррупционных мер — это учитывает caveat строки."
+    },
+    {
+      "link_id": "link-incomes",
+      "civic_topic_id": "incomes",
+      "position_topic": null,
+      "metric_codes": ["inc_per_capita_month", "inc_poverty_share"],
+      "note": "Региональные данные без документированной позиции в реестре."
+    },
+    {
+      "link_id": "link-prices",
+      "civic_topic_id": "prices",
+      "position_topic": null,
+      "metric_codes": ["inc_per_capita_month", "inc_poverty_share"],
+      "note": "Косвенная связь с показателями доходов и бедности (индекса цен в каталоге нет — честный пробел)."
+    },
+    {
+      "link_id": "link-utilities",
+      "civic_topic_id": "utilities",
+      "position_topic": null,
+      "metric_codes": ["hou_dilapidated_share"],
+      "note": "Косвенная связь: состояние жилищной инфраструктуры."
+    },
+    {
+      "link_id": "link-jobs",
+      "civic_topic_id": "jobs",
+      "position_topic": null,
+      "metric_codes": ["labor_unemployment_rate", "labor_employment_rate"],
+      "note": "Региональные данные рынка труда."
+    },
+    {
+      "link_id": "link-healthcare",
+      "civic_topic_id": "healthcare",
+      "position_topic": null,
+      "metric_codes": ["med_doctors_per_10000", "med_beds_per_10000", "med_life_expectancy"],
+      "note": "Региональные данные здравоохранения."
+    },
+    {
+      "link_id": "link-education",
+      "civic_topic_id": "education",
+      "position_topic": null,
+      "metric_codes": ["edu_higher_share", "edu_students_per_10000"],
+      "note": "Региональные данные образования."
+    },
+    {
+      "link_id": "link-housing",
+      "civic_topic_id": "housing",
+      "position_topic": null,
+      "metric_codes": ["hou_per_capita_m2", "hou_commissioned_1000m2"],
+      "note": "Региональные данные жилья."
+    },
+    {
+      "link_id": "link-transport",
+      "civic_topic_id": "transport",
+      "position_topic": null,
+      "metric_codes": [],
+      "note": "Показателя транспорта в каталоге Этапа 5 нет — колонка Regional Data честно пуста."
+    },
+    {
+      "link_id": "link-ecology",
+      "civic_topic_id": "ecology",
+      "position_topic": null,
+      "metric_codes": [],
+      "note": "Показателя экологии в каталоге Этапа 5 нет — колонка Regional Data честно пуста."
+    }
+  ]
+}

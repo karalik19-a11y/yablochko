@@ -12,7 +12,8 @@ import {
   MetricMapValues,
   TerritoryMetrics,
   TrustChain,
-  CivicOverview
+  CivicOverview,
+  PositionMatrix
 } from '@yabloko/api-contract';
 import { z } from 'zod';
 
@@ -33,7 +34,8 @@ async function withApp(fn: (app: Awaited<ReturnType<typeof buildApp>>['app']) =>
     disableJobs: true,
     geoDatasetPath: resolve(process.cwd(), 'datasets/geo/rf.json'),
     metricsCatalogPath: resolve(process.cwd(), 'datasets/metrics/catalog.json'),
-    civicTopicsPath: resolve(process.cwd(), 'datasets/civic/topics.json')
+    civicTopicsPath: resolve(process.cwd(), 'datasets/civic/topics.json'),
+    positionLinksPath: resolve(process.cwd(), 'datasets/civic/topic_links.json')
   });
   try {
     await fn(handle.app);
@@ -166,6 +168,44 @@ describe('dev-api (интеграция контракта)', () => {
 
       // валидация: некорректный geo → 404
       const bad = await app.inject({ method: 'GET', url: `${API.civicOverview}?geo=javascript:alert(1)` });
+      expect(bad.statusCode).toBe(404);
+    });
+  });
+
+  it('positions/matrix: категории разведены (позиция ≠ мнение), статусы по правилам', async () => {
+    await withApp(async (app) => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `${API.positionsMatrix}?geo=${encodeURIComponent('ru:country:ru')}`
+      });
+      expect(res.statusCode).toBe(200);
+      const m = Envelope(PositionMatrix).parse(res.json()).data;
+      expect(m.rows.length).toBe(14);
+      expect(m.k_min).toBe(30);
+      expect(m.category_rules.length).toBeGreaterThanOrEqual(4);
+
+      const statuses = m.rows.map((r) => r.comparison.status);
+      expect(statuses).toContain('agenda_overlap');
+      expect(statuses).toContain('agenda_divergence');
+
+      for (const r of m.rows) {
+        // СТРАЖ: opinion никогда не содержит полей/текстов позиции
+        const oj = JSON.stringify(r.opinion);
+        expect(oj).not.toContain('exact_position');
+        // СТРАЖ: позиция всегда помечена категорией
+        if (r.position) expect(r.position.statement_category).toBe('OFFICIAL_PARTY_STATEMENT');
+        // у каждой строки есть оговорки категорий
+        expect(r.caveats.length).toBeGreaterThanOrEqual(3);
+      }
+      // overlap только при наличии позиции
+      for (const r of m.rows) {
+        if (r.comparison.status === 'agenda_overlap') expect(r.position).not.toBeNull();
+      }
+      // позиция «Свободы» не связана с темами — не потеряна
+      expect(m.unlinked_positions.map((p) => p.topic)).toContain('Свободы');
+
+      // инъекция geo → 404
+      const bad = await app.inject({ method: 'GET', url: `${API.positionsMatrix}?geo=javascript:alert(1)` });
       expect(bad.statusCode).toBe(404);
     });
   });
