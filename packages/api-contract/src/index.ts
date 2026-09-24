@@ -4,6 +4,7 @@ export * from './meta.js';
 export * from './alerts.js';
 export * from './documents.js';
 export * from './geo.js';
+export * from './metrics.js';
 
 /** Маршруты API v1 (единый источник истины для клиента и сервера). */
 export const API = {
@@ -23,5 +24,10 @@ export const API = {
   geoTree: '/api/v1/geo/tree',
   geoMap: '/api/v1/geo/map',
   geoSearch: '/api/v1/geo/search',
-  territory: '/api/v1/geo/territory'
+  territory: '/api/v1/geo/territory',
+  metricsCatalog: '/api/v1/metrics/catalog',
+  metricsTerritory: '/api/v1/metrics/territory',
+  metricsMap: '/api/v1/metrics/map',
+  metricsCompare: '/api/v1/metrics/compare',
+  metricsTrust: '/api/v1/metrics/trust'
 } as const;

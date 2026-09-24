@@ -1,23 +1,61 @@
+import { useMemo, useState } from 'react';
 import { Badge, EmptyState, ErrorBox, Panel, Skeleton } from '@yabloko/ui';
-import { API, Territory } from '@yabloko/api-contract';
+import { MetricRow } from '@yabloko/ui';
+import { API, Territory, TerritoryMetrics, TrustChain as TrustChainSchema } from '@yabloko/api-contract';
+import type { MetricView } from '@yabloko/api-contract';
 import { useApi } from '../api/hooks.js';
+import { TrustBox } from '../components/TrustBox.js';
 
 /**
- * Territory Profile: структура из мастер-спецификации (DEMOGRAPHICS …
- * YABLOKO ACTIVITY). До соответствующих этапов каждый раздел честно
- * показывает INSUFFICIENT DATA с указанием этапа и источника.
+ * Territory Profile: разделы из мастер-спецификации (DEMOGRAPHICS …
+ * YABLOKO ACTIVITY). Разделы с метриками показывают значения+тренд+спарклайн
+ * с provenance; разделы без данных — честный INSUFFICIENT DATA.
  */
-export function TerritoryScreen({ geoId, onNavigate }: { geoId: string; onNavigate: (r: string) => void }) {
+export function TerritoryScreen({
+  geoId,
+  onNavigate
+}: {
+  geoId: string;
+  onNavigate: (r: string) => void;
+}) {
   const state = useApi(`${API.territory}/${encodeURIComponent(geoId)}`, Territory);
+  const metrics = useApi(
+    `${API.metricsTerritory}/${encodeURIComponent(geoId)}`,
+    TerritoryMetrics
+  );
+  const [trustReq, setTrustReq] = useState<{ geo: string; code: string } | null>(null);
+  const trust = useApi(
+    trustReq
+      ? `${API.metricsTrust}?geo=${encodeURIComponent(trustReq.geo)}&code=${encodeURIComponent(trustReq.code)}`
+      : API.metricsTrust,
+    TrustChainSchema
+  );
+
+  // Метрики по секциям профиля
+  const bySection = useMemo(() => {
+    const map = new Map<string, MetricView[]>();
+    for (const d of metrics.data?.domains ?? []) {
+      const arr = map.get(d.section) ?? [];
+      arr.push(...d.metrics);
+      map.set(d.section, arr);
+    }
+    return map;
+  }, [metrics.data]);
 
   if (state.status === 'loading') return <Skeleton h={220} />;
   if (state.status === 'error') {
-    return <ErrorBox message={`Профиль территории недоступен: ${state.error}`} onRetry={state.reload} />;
+    return (
+      <ErrorBox
+        message={`Профиль территории недоступен: ${state.error}`}
+        onRetry={state.reload}
+      />
+    );
   }
   if (!state.data) {
     return <EmptyState title="Территория не найдена" note={geoId} />;
   }
   const t = state.data;
+
 
   return (
     <>
@@ -58,6 +96,14 @@ export function TerritoryScreen({ geoId, onNavigate }: { geoId: string; onNaviga
         {t.node.children_count !== undefined && t.node.children_count > 0 && (
           <Badge tone="info">Подчинённых: {t.node.children_count}</Badge>
         )}
+        {metrics.status === 'ready' && metrics.data && (
+          <Badge
+            tone="warn"
+            title="Показатели генерируются SYNTHETIC-генератором (ADR-0005); заменяются Росстатом при импорте"
+          >
+            METRICS: SYNTHETIC
+          </Badge>
+        )}
         {t.parent && (
           <button
             className="btn small"
@@ -72,7 +118,7 @@ export function TerritoryScreen({ geoId, onNavigate }: { geoId: string; onNaviga
         {t.children.length === 0 ? (
           <EmptyState
             title="INSUFFICIENT DATA"
-            note="Нижний уровень для этой территории пока не загружен (пилотный охват муниципального слоя). Данные появятся из официальных источников."
+            note="Нижний уровень для этой территории пока не загружен (пилотный охват муниципального слоя)."
             badge={<Badge tone="warn">ЭТАП 5+</Badge>}
           />
         ) : (
@@ -91,16 +137,62 @@ export function TerritoryScreen({ geoId, onNavigate }: { geoId: string; onNaviga
         )}
       </Panel>
 
-      <div className="grid-3">
-        {t.sections.map((sec) => (
-          <Panel key={sec.key} title={sec.title}>
-            <EmptyState
-              title="INSUFFICIENT DATA"
-              note={sec.stage ? `Подключается на Этапе ${sec.stage}` : undefined}
-            />
+      {metrics.status === 'loading' && <Skeleton h={160} />}
+      {metrics.status === 'error' && (
+        <ErrorBox message={`Показатели недоступны: ${metrics.error}`} onRetry={metrics.reload} />
+      )}
+
+      {t.sections.map((sec) => {
+        const ms = bySection.get(sec.title) ?? [];
+        if (ms.length === 0) {
+          return (
+            <Panel key={sec.key} title={sec.title}>
+              <EmptyState
+                title="INSUFFICIENT DATA"
+                note={sec.stage ? `Подключается на Этапе ${sec.stage}` : undefined}
+              />
+            </Panel>
+          );
+        }
+        return (
+          <Panel
+            key={sec.key}
+            title={sec.title}
+            actions={
+              <span className="small faint">
+                каждая метрика: источник · методология · покрытие (кнопка Trust)
+              </span>
+            }
+          >
+            {ms.map((m) => (
+              <MetricRow
+                key={m.code}
+                name={m.name}
+                unit={m.unit}
+                value={m.latest?.value ?? null}
+                trendPct={m.trend_pct}
+                trendAbs={m.trend_abs}
+                series={m.series.map((s) => s.value)}
+                dataMode={m.provenance.data_mode}
+                onTrust={() => setTrustReq({ geo: geoId, code: m.code })}
+              />
+            ))}
           </Panel>
-        ))}
-      </div>
+        );
+      })}
+
+      {trustReq && trust.status === 'ready' && trust.data && (
+        <Panel
+          title={`Why should I trust this? — ${trust.data.metric_name}`}
+          actions={
+            <button className="btn small" onClick={() => setTrustReq(null)}>
+              Закрыть
+            </button>
+          }
+        >
+          <TrustBox chain={trust.data} label="Свернуть" />
+        </Panel>
+      )}
     </>
   );
 }

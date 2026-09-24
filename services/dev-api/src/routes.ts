@@ -30,6 +30,11 @@ export interface RouteDeps {
   geoMap: (q: Record<string, string>) => unknown;
   geoSearch: (q: Record<string, string>) => unknown;
   territory: (geoId: string) => unknown;
+  metricsCatalog: () => unknown;
+  metricsTerritory: (geoId: string) => unknown;
+  metricsMap: (q: Record<string, string>) => unknown;
+  metricsCompare: (q: Record<string, string>) => unknown;
+  metricsTrust: (q: Record<string, string>) => unknown;
   metaStatus: () => unknown;
 }
 
@@ -79,6 +84,14 @@ export function buildRoutes(deps: RouteDeps): RouteDef[] {
       url: `${API.territory}/:geoId`,
       handler: (_q, params) => deps.territory(String(params?.['geoId'] ?? ''))
     },
+    { url: API.metricsCatalog, handler: deps.metricsCatalog },
+    {
+      url: `${API.metricsTerritory}/:geoId`,
+      handler: (_q, params) => deps.metricsTerritory(String(params?.['geoId'] ?? ''))
+    },
+    { url: API.metricsMap, handler: deps.metricsMap },
+    { url: API.metricsCompare, handler: deps.metricsCompare },
+    { url: API.metricsTrust, handler: deps.metricsTrust },
     { url: API.metaStatus, handler: deps.metaStatus }
   ];
 }

@@ -16,9 +16,9 @@ export interface NavItem {
 export const NAV: NavItem[] = [
   { key: 'overview', label: 'Обзор', group: 'Анализ', stage: null, description: 'Россия: состояние и YABLOKO TODAY' },
   { key: 'territories', label: 'Территории', group: 'Анализ', stage: 4, description: 'Дриллдаун: ФО → субъект → муниципалитет (карта, Этап 4)' },
-  { key: 'population', label: 'Население', group: 'Анализ', stage: 5, description: 'Population Intelligence: демография и показатели (Этап 5)' },
-  { key: 'economy', label: 'Экономика', group: 'Анализ', stage: 5, description: 'Экономические показатели территорий (Этап 5)' },
-  { key: 'society', label: 'Общество', group: 'Анализ', stage: 5, description: 'Здравоохранение, образование, жильё (Этап 5)' },
+  { key: 'population', label: 'Население', group: 'Анализ', stage: null, description: 'Population Intelligence: демография и показатели (SYNTHETIC до импорта Росстата)' },
+  { key: 'economy', label: 'Экономика', group: 'Анализ', stage: null, description: 'Экономика, доходы, занятость, бизнес (SYNTHETIC до импорта)' },
+  { key: 'society', label: 'Общество', group: 'Анализ', stage: null, description: 'Здравоохранение, образование, жильё, миграция (SYNTHETIC)' },
   { key: 'civic-trends', label: 'Общественные настроения', group: 'Темы и позиции', stage: 6, description: 'Civic Sentiment Engine — только агрегаты (Этап 6)' },
   { key: 'issues', label: 'Проблемы (Issues)', group: 'Темы и позиции', stage: 6, description: 'Issue Tracker: растущие и затухающие темы (Этап 6)' },
   { key: 'yabloko-position', label: 'Позиция «Яблока»', group: 'Темы и позиции', stage: null, description: 'Реестр позиций партии; матрица с общественным мнением — Этап 7' },

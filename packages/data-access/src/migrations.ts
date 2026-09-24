@@ -305,6 +305,48 @@ CREATE TABLE geo_merges (
   created_at TEXT NOT NULL
 );
 `
+  },
+  {
+    id: 4,
+    name: '004_regional_metrics',
+    sql: `
+CREATE TABLE metrics_catalog (
+  metric_code TEXT PRIMARY KEY,
+  domain TEXT NOT NULL,
+  name TEXT NOT NULL,
+  unit TEXT NOT NULL,
+  periodicity TEXT NOT NULL DEFAULT 'annual',
+  agg TEXT NOT NULL DEFAULT 'weighted',
+  methodology TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE TABLE regional_metrics (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  geo_id TEXT NOT NULL REFERENCES geography(geo_id),
+  metric_code TEXT NOT NULL REFERENCES metrics_catalog(metric_code),
+  period TEXT NOT NULL,
+  value REAL NOT NULL,
+  source_id TEXT NOT NULL REFERENCES sources(source_id),
+  quality_grade TEXT,
+  methodology_ref TEXT,
+  data_mode TEXT NOT NULL DEFAULT 'SYNTHETIC',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE(geo_id, metric_code, period, source_id)
+);
+CREATE INDEX idx_rm_geo_metric ON regional_metrics(geo_id, metric_code, period);
+CREATE INDEX idx_rm_metric_period ON regional_metrics(metric_code, period);
+CREATE INDEX idx_rm_domain ON metrics_catalog(domain);
+
+CREATE TABLE metrics_domains (
+  domain TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  section TEXT NOT NULL,
+  sort_order INTEGER NOT NULL DEFAULT 0
+);
+`
   }
 ];
 

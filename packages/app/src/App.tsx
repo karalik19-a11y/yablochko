@@ -13,6 +13,7 @@ import { AlertsScreen } from './screens/Alerts.js';
 import { PlaceholderScreen } from './screens/Placeholder.js';
 import { TerritoriesScreen } from './screens/Territories.js';
 import { TerritoryScreen } from './screens/Territory.js';
+import { MetricsExplorer } from './screens/MetricsExplorer.js';
 
 const IMPLEMENTED = new Set([
   'overview',
@@ -21,7 +22,10 @@ const IMPLEMENTED = new Set([
   'sources',
   'alerts',
   'settings',
-  'territories'
+  'territories',
+  'population',
+  'economy',
+  'society'
 ]);
 
 export function App() {
@@ -57,6 +61,27 @@ export function App() {
         {route === 'overview' && <OverviewScreen onNavigate={navigate} />}
         {route === 'territories' && (
           <TerritoriesScreen theme={theme} onNavigate={navigate} />
+        )}
+        {route === 'population' && (
+          <MetricsExplorer
+            title="POPULATION"
+            description="Демография, возрастной и половой состав. Все значения SYNTHETIC до импорта Росстата; каждая метрика несёт источник, методологию и покрытие."
+            domains={['demographics', 'age', 'sex']}
+          />
+        )}
+        {route === 'economy' && (
+          <MetricsExplorer
+            title="ECONOMY"
+            description="Экономика, доходы, занятость, бизнес. Тренд — констатация изменения, не оценка и не причинность."
+            domains={['economy', 'income', 'employment', 'business']}
+          />
+        )}
+        {route === 'society' && (
+          <MetricsExplorer
+            title="SOCIETY"
+            description="Здравоохранение, образование, жильё, миграция."
+            domains={['healthcare', 'education', 'housing', 'migration']}
+          />
         )}
         {route.startsWith('territory/') && (
           <TerritoryScreen

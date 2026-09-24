@@ -1,0 +1,161 @@
+{
+  "meta": {
+    "note": "Справочник показателей Population Intelligence (домены по мастер-плану: population, age, sex, migration, birth, death, density, education, employment, income, housing + экономика/бизнес/медицина для профиля территории). Параметры synthetic — конфигурация детерминированного генератора тест-данных (ADR-0005), помечаются data_mode=SYNTHETIC.",
+    "as_of": "2026-09-24"
+  },
+  "domains": [
+    { "domain": "demographics", "title": "Демография", "section": "DEMOGRAPHICS" },
+    { "domain": "age", "title": "Возрастной состав", "section": "DEMOGRAPHICS" },
+    { "domain": "sex", "title": "Половой состав", "section": "DEMOGRAPHICS" },
+    { "domain": "migration", "title": "Миграция", "section": "MIGRATION" },
+    { "domain": "education", "title": "Образование", "section": "EDUCATION" },
+    { "domain": "employment", "title": "Занятость", "section": "EMPLOYMENT" },
+    { "domain": "income", "title": "Доходы", "section": "INCOME" },
+    { "domain": "housing", "title": "Жильё", "section": "HOUSING" },
+    { "domain": "economy", "title": "Экономика", "section": "ECONOMY" },
+    { "domain": "business", "title": "Бизнес", "section": "BUSINESS" },
+    { "domain": "healthcare", "title": "Здравоохранение", "section": "HEALTHCARE" }
+  ],
+  "metrics": [
+    {
+      "code": "pop_total", "domain": "demographics", "name": "Численность населения", "unit": "чел",
+      "agg": "sum", "methodology": "Численность постоянного населения на 1 января года (после импорта — Росстат, методология Росстата).",
+      "synthetic": { "min": 300000, "max": 5500000, "trend": [-1.0, 1.2], "noise": 1.0 }
+    },
+    {
+      "code": "pop_density", "domain": "demographics", "name": "Плотность населения", "unit": "чел/км²",
+      "agg": "weighted", "methodology": "Численность населения / площадь территории (после импорта — Росстат).",
+      "synthetic": { "min": 1, "max": 320, "trend": [-1.0, 1.5], "noise": 1.0 }
+    },
+    {
+      "code": "pop_birth_rate", "domain": "demographics", "name": "Рождаемость", "unit": "на 1000 чел",
+      "agg": "weighted", "methodology": "Число родившихся на 1000 человек населения (после импорта — Росстат, естественное движение населения).",
+      "synthetic": { "min": 7, "max": 14, "trend": [-2.0, 1.0], "noise": 1.2 }
+    },
+    {
+      "code": "pop_death_rate", "domain": "demographics", "name": "Смертность", "unit": "на 1000 чел",
+      "agg": "weighted", "methodology": "Число умерших на 1000 человек населения (после импорта — Росстат).",
+      "synthetic": { "min": 8, "max": 18, "trend": [-1.5, 1.5], "noise": 1.2 }
+    },
+    {
+      "code": "age_share_0_15", "domain": "age", "name": "Доля населения 0–15 лет", "unit": "%",
+      "agg": "weighted", "methodology": "Распределение населения по возрастным группам (после импорта — Росстат).",
+      "synthetic": { "min": 14, "max": 22, "trend": [-1.0, 1.0], "noise": 0.8 }
+    },
+    {
+      "code": "age_share_working", "domain": "age", "name": "Доля населения трудоспособного возраста", "unit": "%",
+      "agg": "weighted", "methodology": "Распределение населения по возрастным группам (после импорта — Росстат).",
+      "synthetic": { "min": 52, "max": 62, "trend": [-1.2, 0.8], "noise": 0.8 }
+    },
+    {
+      "code": "age_share_older", "domain": "age", "name": "Доля населения старше трудоспособного возраста", "unit": "%",
+      "agg": "weighted", "methodology": "Распределение населения по возрастным группам (после импорта — Росстат).",
+      "synthetic": { "min": 18, "max": 30, "trend": [-0.5, 2.0], "noise": 0.8 }
+    },
+    {
+      "code": "sex_share_male", "domain": "sex", "name": "Доля мужчин", "unit": "%",
+      "agg": "weighted", "methodology": "Половой состав населения (после импорта — Росстат).",
+      "synthetic": { "min": 44, "max": 48, "trend": [-0.3, 0.3], "noise": 0.3 }
+    },
+    {
+      "code": "sex_share_female", "domain": "sex", "name": "Доля женщин", "unit": "%",
+      "agg": "weighted", "methodology": "Половой состав населения (после импорта — Росстат).",
+      "synthetic": { "min": 52, "max": 56, "trend": [-0.3, 0.3], "noise": 0.3 }
+    },
+    {
+      "code": "mig_net", "domain": "migration", "name": "Миграционный прирост", "unit": "чел/год",
+      "agg": "sum", "methodology": "Миграционный прирост = прибытия − выбытия (после импорта — Росстат).",
+      "synthetic": { "min": -15000, "max": 15000, "trend": [-8, 8], "noise": 15 }
+    },
+    {
+      "code": "mig_arrivals", "domain": "migration", "name": "Прибытия", "unit": "чел/год",
+      "agg": "sum", "methodology": "Число прибывших (после импорта — Росстат).",
+      "synthetic": { "min": 5000, "max": 60000, "trend": [-5, 6], "noise": 8 }
+    },
+    {
+      "code": "mig_departures", "domain": "migration", "name": "Выбытия", "unit": "чел/год",
+      "agg": "sum", "methodology": "Число выбывших (после импорта — Росстат).",
+      "synthetic": { "min": 5000, "max": 60000, "trend": [-6, 5], "noise": 8 }
+    },
+    {
+      "code": "edu_higher_share", "domain": "education", "name": "Доля занятых с высшим образованием", "unit": "%",
+      "agg": "weighted", "methodology": "Уровень образования занятого населения (после импорта — Росстат, обследование рабочей силы).",
+      "synthetic": { "min": 22, "max": 45, "trend": [-0.5, 2.0], "noise": 1.0 }
+    },
+    {
+      "code": "edu_students_per_10000", "domain": "education", "name": "Студенты вузов на 10 000 человек", "unit": "чел",
+      "agg": "weighted", "methodology": "Контингент студентов вузов на 10 000 человек населения (после импорта — Росстат).",
+      "synthetic": { "min": 120, "max": 900, "trend": [-3.0, 1.0], "noise": 2.0 }
+    },
+    {
+      "code": "labor_unemployment_rate", "domain": "employment", "name": "Уровень безработицы", "unit": "%",
+      "agg": "weighted", "methodology": "Уровень безработицы по методологии МОТ (после импорта — Росстат, обследование рабочей силы).",
+      "synthetic": { "min": 2, "max": 9, "trend": [-8, 8], "noise": 4 }
+    },
+    {
+      "code": "labor_employment_rate", "domain": "employment", "name": "Уровень занятости", "unit": "%",
+      "agg": "weighted", "methodology": "Уровень занятости населения возрастом 15–72 года (после импорта — Росстат).",
+      "synthetic": { "min": 55, "max": 70, "trend": [-2, 2], "noise": 1.2 }
+    },
+    {
+      "code": "inc_per_capita_month", "domain": "income", "name": "Среднедушевые денежные доходы", "unit": "руб/мес",
+      "agg": "weighted", "methodology": "Среднедушевые денежные доходы в месяц (после импорта — Росстат).",
+      "synthetic": { "min": 18000, "max": 70000, "trend": [4, 12], "noise": 3 }
+    },
+    {
+      "code": "inc_avg_wage_month", "domain": "income", "name": "Средняя начисленная зарплата", "unit": "руб/мес",
+      "agg": "weighted", "methodology": "Среднемесячная номинальная начисленная заработная плата (после импорта — Росстат).",
+      "synthetic": { "min": 25000, "max": 110000, "trend": [5, 13], "noise": 3 }
+    },
+    {
+      "code": "inc_poverty_share", "domain": "income", "name": "Доля населения с доходами ниже границы бедности", "unit": "%",
+      "agg": "weighted", "methodology": "Уровень бедности (после импорта — Росстат, граница бедности).",
+      "synthetic": { "min": 5, "max": 22, "trend": [-6, 4], "noise": 3 }
+    },
+    {
+      "code": "hou_per_capita_m2", "domain": "housing", "name": "Обеспеченность жильём", "unit": "м²/чел",
+      "agg": "weighted", "methodology": "Общая площадь жилых помещений на одного жителя (после импорта — Росстат).",
+      "synthetic": { "min": 18, "max": 36, "trend": [0.5, 2.5], "noise": 0.8 }
+    },
+    {
+      "code": "hou_commissioned_1000m2", "domain": "housing", "name": "Ввод жилья", "unit": "тыс. м²/год",
+      "agg": "sum", "methodology": "Ввод в эксплуатацию жилых домов (после импорта — Росстат).",
+      "synthetic": { "min": 10, "max": 2500, "trend": [-10, 12], "noise": 12 }
+    },
+    {
+      "code": "hou_dilapidated_share", "domain": "housing", "name": "Доля ветхого и аварийного жилья", "unit": "%",
+      "agg": "weighted", "methodology": "Доля ветхого и аварийного жилфонда (после импорта — Росстат/ГЖИ).",
+      "synthetic": { "min": 0.5, "max": 15, "trend": [-4, 6], "noise": 4 }
+    },
+    {
+      "code": "eco_grp_per_capita", "domain": "economy", "name": "ВРП на душу населения", "unit": "руб/год",
+      "agg": "weighted", "methodology": "Валовой региональный продукт на душу населения (после импорта — Росстат; публикуется с лагом).",
+      "synthetic": { "min": 200000, "max": 2500000, "trend": [3, 12], "noise": 3 }
+    },
+    {
+      "code": "eco_invest_per_capita", "domain": "economy", "name": "Инвестиции в основной капитал на душу", "unit": "руб/год",
+      "agg": "weighted", "methodology": "Инвестиции в основной капитал на душу населения (после импорта — Росстат).",
+      "synthetic": { "min": 20000, "max": 500000, "trend": [-5, 15], "noise": 6 }
+    },
+    {
+      "code": "bus_small_per_1000", "domain": "business", "name": "Субъекты МСП на 1000 человек", "unit": "ед",
+      "agg": "weighted", "methodology": "Количество субъектов малого и среднего предпринимательства на 1000 человек (после импорта — ФНС/Росстат).",
+      "synthetic": { "min": 10, "max": 42, "trend": [-3, 5], "noise": 3 }
+    },
+    {
+      "code": "med_doctors_per_10000", "domain": "healthcare", "name": "Врачи на 10 000 человек", "unit": "чел",
+      "agg": "weighted", "methodology": "Численность врачей на 10 000 человек населения (после импорта — Росстат).",
+      "synthetic": { "min": 30, "max": 72, "trend": [-1.5, 1.5], "noise": 1.5 }
+    },
+    {
+      "code": "med_beds_per_10000", "domain": "healthcare", "name": "Больничные койки на 10 000 человек", "unit": "коек",
+      "agg": "weighted", "methodology": "Обеспеченность больничными койками на 10 000 человек (после импорта — Росстат).",
+      "synthetic": { "min": 40, "max": 110, "trend": [-3, 1], "noise": 2 }
+    },
+    {
+      "code": "med_life_expectancy", "domain": "healthcare", "name": "Ожидаемая продолжительность жизни", "unit": "лет",
+      "agg": "weighted", "methodology": "Ожидаемая продолжительность жизни при рождении (после импорта — Росстат).",
+      "synthetic": { "min": 66, "max": 78, "trend": [-0.6, 0.9], "noise": 0.5 }
+    }
+  ]
+}

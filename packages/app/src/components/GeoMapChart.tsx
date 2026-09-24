@@ -14,16 +14,26 @@ export function GeoMapChart({
   dark,
   height = 460,
   onPick,
-  focusFd
+  focusFd,
+  fillColorExpr,
+  hoverValue
 }: {
   data: GeoMap;
   dark: boolean;
   height?: number;
   onPick?: (geoId: string) => void;
   focusFd?: string | null;
+  /** MapLibre-выражение fill-color для слоя (хлороплет). */
+  fillColorExpr?: unknown[] | null;
+  /** Формирователь подписи значения в tooltip. */
+  hoverValue?: (props: { geo_id: string; name: string; value?: number | null }) => string | null;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
+  const hoverValueRef = useRef(hoverValue);
+  useEffect(() => {
+    hoverValueRef.current = hoverValue;
+  }, [hoverValue]);
   const [hover, setHover] = useState<{ name: string; parent: string | null; x: number; y: number } | null>(null);
 
   useEffect(() => {
@@ -46,9 +56,16 @@ export function GeoMapChart({
     map.on('mousemove' as never, (e: maplibregl.MapMouseEvent) => {
       const fs = map.queryRenderedFeatures(e.point, { layers: ['cells-fill'] });
       if (fs.length > 0 && fs[0]) {
-        const p = fs[0].properties as { name?: string; parent_name?: string | null } | null;
+        const p = fs[0].properties as {
+          name?: string;
+          parent_name?: string | null;
+          value?: number | null;
+          geo_id?: string;
+        } | null;
+        const hv = hoverValueRef.current;
+        const extra = hv && p ? hv({ geo_id: p.geo_id ?? '', name: p.name ?? '', value: p.value ?? null }) : null;
         setHover({
-          name: p?.name ?? '',
+          name: extra ? `${p?.name ?? ''} — ${extra}` : p?.name ?? '',
           parent: p?.parent_name ?? null,
           x: e.point.x,
           y: e.point.y
@@ -119,6 +136,23 @@ export function GeoMapChart({
     if (map.isStyleLoaded()) apply();
     else map.on('load', apply);
   }, [data, dark, onPick]);
+
+  // Хлороплет: применение fill-color выражения
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !map.isStyleLoaded()) return;
+    if (fillColorExpr) {
+      map.setPaintProperty('cells-fill', 'fill-color', fillColorExpr as never);
+      map.setPaintProperty('cells-fill', 'fill-opacity', 0.82);
+    } else {
+      map.setPaintProperty(
+        'cells-fill',
+        'fill-color',
+        dark ? '#5cbc7c' : '#2e8b52'
+      );
+      map.setPaintProperty('cells-fill', 'fill-opacity', 0.14);
+    }
+  }, [fillColorExpr, dark]);
 
   // Фильтр по федеральному округу (drill-down уровнем выше)
   useEffect(() => {

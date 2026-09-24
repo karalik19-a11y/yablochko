@@ -12,7 +12,7 @@
 | Веха | Этапы | Смысл | Состояние |
 |---|---|---|---|
 | **M0 Foundation** | 1–3 | Аудит + ядро Party Context + Source Registry / ingestion | Этапы 1–3 ✅ |
-| **M1 Data Spine** | 4–5 | География, показатели территорий | Этап 4 ✅ |
+| **M1 Data Spine** | 4–5 | География, показатели территорий | Этапы 4–5 ✅ |
 | **M2 Analytics Core** | 6–8 | Настроения, Position Matrix, выборы | — |
 | **M3 Deep Modules** | 9–13 | Postmortem-2026, OSINT, медиа, Decision Lab, AI | — |
 | **M4 Product Polish** | 14 | Премиум UX, целостность платформы | — |
@@ -149,7 +149,7 @@ Alert SOURCE_FAILURE работает; ни одна запись без provena
 - Проверено: Vitest 50/50 (картограмма: 89 уникальных ячеек; иерархия без сирот;
   idempotency; слияния; поиск; drill-down), lint/typecheck/build ✅, runtime ✅.
 
-## Этап 5 — Population Intelligence (СЛЕДУЮЩИЙ)
+## Этап 5 — Population Intelligence ✅ (выполнен 2026-09-24)
 
 **Цель:** каркас территориальных показателей.
 **Объём:** единый формат `regional_metrics` (value/trend/period/source/quality/confidence);
@@ -158,6 +158,34 @@ income, housing; seed-данные SYNTHETIC + импортёр Росстата
 экраны POPULATION/ECONOMY/SOCIETY с тайм-сериями (ECharts) и таблицами (virtualized).
 **DoD:** территориальный профиль (на примере СПб) показывает разделы DEMOGRAPHICS…HOUSING
 с provenance-бейджами; «Why should I trust this?» открывает цепочку evidence.
+
+**Результат:**
+- Миграция 004: `metrics_catalog` (28 метрик / 11 доменов по мастер-списку:
+  population, age, sex, migration, birth, death, density, education, employment,
+  income, housing + экономика/бизнес/медицина) + `regional_metrics`
+  (UNIQUE geo_id+metric+period+source) + `metrics_domains`.
+- Единый формат: VALUE · TREND (разность соседних периодов, явно «не оценка и
+  не причинность») · PERIOD · SOURCE (grade/note/license/last_update/checksum) ·
+  QUALITY (coverage, data_mode) · METHODOLOGY.
+- SYNTHETIC-генератор (ADR-0005): детерминированные ряды 2019–2025 для 89 субъектов;
+  ФО и страна считаются согласованно (сумма / средневзвешенное по населению);
+  источник `synthetic-demo` grade D зарегистрирован в Source Registry с честным
+  описанием. Замена на Росстат при импорте снимает пометку SYNTHETIC автоматически.
+- Territory Profile: разделы DEMOGRAPHICS / MIGRATION / EDUCATION / EMPLOYMENT /
+  INCOME / HOUSING / ECONOMY / BUSINESS / HEALTHCARE заполнены (значение + тренд +
+  спарклайн + SYN-бейдж + Trust); остальные 10 разделов — INSUFFICIENT DATA
+  с этапом подключения.
+- Экраны POPULATION / ECONOMY / SOCIETY: сравнение субъектов (выбор до 4 метрик,
+  фильтр ФО, сортировка, переход в профиль, Trust).
+- Карта: слои-хлороплет Population / Income / Employment / Housing (квантильная
+  шкала, легенда, tooltip со значением, методология слоя обновляется).
+- **Why should I trust this?**: цепочка VALUE → DATASET (row_key) → SOURCE
+  (grade/license/checksum) → METHODOLOGY + coverage + оговорки (включая явное
+  «значение СИНТЕТИЧЕСКОЕ» и «тренд — не причинность»).
+- Проверено: Vitest 61/61 (детерминизм генератора, согласованность агрегатов,
+  idempotency, provenance, trust-цепочка, контракт-интеграция), lint/typecheck/
+  build ✅, runtime: каталог 28 метрик, СПб 9 доменов, слой карты 89 значений,
+  trust-цепочка, compare по СЗФО ✅.
 
 ## Этап 6 — Civic Intelligence
 
@@ -291,5 +319,6 @@ launch → login → analysis → export → update → uninstall; финаль�
 | 2. YABLOKO Context | ✅ завершён (2026-09-24) |
 | 3. Источники России | ✅ завершён (2026-09-24) |
 | 4. Географическая база | ✅ завершён (2026-09-24) |
-| 5. Population Intelligence | ⏭ следующий |
-| 6–18 | — запланированы |
+| 5. Population Intelligence | ✅ завершён (2026-09-24) |
+| 6. Civic Intelligence | ⏭ следующий |
+| 7–18 | — запланированы |

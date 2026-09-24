@@ -2,6 +2,7 @@ import Fastify, { type FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
 import fastifyStatic from '@fastify/static';
 import { existsSync } from 'node:fs';
+import { resolve as resolvePath } from 'node:path';
 import {
   openDb,
   migrate,
@@ -15,6 +16,16 @@ import {
   getGeoPath,
   searchGeo,
   buildSubjectMap,
+  loadMetricCatalog,
+  seedMetricCatalog,
+  seedMetricsDomains,
+  generateSyntheticMetrics,
+  storeMetrics,
+  getTerritoryMetrics,
+  getMetricValues,
+  compareSubjects,
+  getTrustChain,
+  syntheticMetricsPresent,
   getPartyContext,
   listPositionsComputed,
   listDocuments,
@@ -49,6 +60,9 @@ export interface AppOptions {
   dbPath: string;
   datasetsDir: string;
   geoDatasetPath?: string;
+  metricsCatalogPath?: string;
+  /** Отключить генерацию SYNTHETIC-метрик. */
+  disableSyntheticMetrics?: boolean;
   staticDir?: string;
   version: string;
   stage: number;
@@ -83,6 +97,20 @@ const TERRITORY_SECTIONS: Array<{ key: string; title: string; stage: number | nu
   { key: 'yabloko_activity', title: 'YABLOKO ACTIVITY', stage: 8 }
 ];
 
+function loadCatalogFromDb(db: Db) {
+  const domains = db
+    .prepare(`SELECT domain, title, section FROM metrics_domains ORDER BY sort_order`)
+    .all() as Array<{ domain: string; title: string; section: string }>;
+  const metrics = db
+    .prepare(`SELECT metric_code AS code, domain, name, unit FROM metrics_catalog ORDER BY domain, metric_code`)
+    .all() as Array<{ code: string; domain: string; name: string; unit: string }>;
+  return { domains, metrics };
+}
+
+function repoRootGuess(): string {
+  return process.cwd();
+}
+
 export interface AppHandle {
   app: FastifyInstance;
   db: Db;
@@ -110,6 +138,21 @@ export async function buildApp(opts: AppOptions): Promise<AppHandle> {
   seedFromBundle(db, bundle);
   if (opts.geoDatasetPath !== null && opts.geoDatasetPath !== undefined) {
     seedGeography(db, loadRfGeoFile(opts.geoDatasetPath));
+  }
+  if (opts.metricsCatalogPath) {
+    const catalog = loadMetricCatalog(opts.metricsCatalogPath);
+    seedMetricCatalog(db, catalog);
+    seedMetricsDomains(db, catalog);
+    if (!opts.disableSyntheticMetrics && !syntheticMetricsPresent(db)) {
+      const rf = loadRfGeoFile(opts.geoDatasetPath ?? resolvePath(repoRootGuess(), 'datasets/geo/rf.json'));
+      const districts = rf.federal_districts.map((d) => ({ geo_id: d.geo_id }));
+      const subjects = rf.subjects.map((s0) => ({
+        geo_id: s0.geo_id,
+        parent_id: `ru:fd:${s0.fd}`
+      }));
+      const rows = generateSyntheticMetrics(catalog, subjects, districts, rf.country.geo_id);
+      storeMetrics(db, { rows, sourceId: 'synthetic-demo', dataMode: 'SYNTHETIC' });
+    }
   }
 
   const timers: NodeJS.Timeout[] = [];
@@ -246,6 +289,57 @@ export async function buildApp(opts: AppOptions): Promise<AppHandle> {
     geoSearch: (q: Record<string, string>) => {
       const query = (q.q ?? '').slice(0, 100);
       return { data: { query, items: searchGeo(db, query) }, meta: metaFor('SEED') };
+    },
+    metricsCatalog: () => {
+      const catalog = loadCatalogFromDb(db);
+      return { data: catalog, meta: metaFor('SEED', ['Данные показателей — SYNTHETIC до импорта Росстата (Этап 5, CI/локально).']) };
+    },
+    metricsTerritory: (geoId: string) => {
+      const domains = getTerritoryMetrics(db, geoId);
+      if (domains.length === 0) return null;
+      const warnings: string[] = [];
+      for (const d of domains) {
+        for (const m of d.metrics) {
+          if (m.provenance.data_mode === 'SYNTHETIC') {
+            warnings.push('Показатели территории — SYNTHETIC (тест-генератор), не реальные значения.');
+            break;
+          }
+        }
+        if (warnings.length > 0) break;
+      }
+      return { data: { geo_id: geoId, domains }, meta: metaFor('SEED', warnings) };
+    },
+    metricsMap: (q: Record<string, string>) => {
+      const code = String(q.code ?? 'pop_total');
+      const fd = q.fd && q.fd.startsWith('ru:fd:') ? q.fd : undefined;
+      return {
+        data: { ...getMetricValues(db, code, { fd }), code },
+        meta: metaFor('SEED', ['SYNTHETIC-данные (тест-генератор).'])
+      };
+    },
+    metricsCompare: (q: Record<string, string>) => {
+      const codes = (String(q.codes ?? 'pop_total,inc_avg_wage_month,labor_unemployment_rate') || '')
+        .split(',')
+        .map((c) => c.trim())
+        .filter((c) => /^[a-z_0-9]+$/i.test(c))
+        .slice(0, 6);
+      const fd = q.fd && q.fd.startsWith('ru:fd:') ? q.fd : undefined;
+      const cmp = compareSubjects(db, codes.length > 0 ? codes : ['pop_total'], { fd });
+      return {
+        data: { ...cmp, codes: codes.length > 0 ? codes : ['pop_total'] },
+        meta: metaFor('SEED', ['SYNTHETIC-данные (тест-генератор).'])
+      };
+    },
+    metricsTrust: (q: Record<string, string>) => {
+      const geo = String(q.geo ?? '');
+      const code = String(q.code ?? '');
+      if (!geo || !code || !/^ru:[a-z_]+:[a-z0-9-_]+$/i.test(geo) || !/^[a-z_0-9]+$/i.test(code)) return null;
+      const chain = getTrustChain(db, geo, code);
+      if (!chain) return null;
+      return {
+        data: chain,
+        meta: metaFor('SEED', ['Цепочка доказательств: VALUE → DATASET → SOURCE → METHODOLOGY.'])
+      };
     },
     territory: (geoId: string) => {
       const node = getGeoNode(db, geoId);

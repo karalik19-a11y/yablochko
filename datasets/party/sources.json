@@ -178,5 +178,23 @@
     },
     "status": "planned",
     "update_policy": "Подключается на Этапе 6–7 вместе с ВЦИОМ"
+  },
+  {
+    "source_id": "synthetic-demo",
+    "name": "SYNTHETIC-генератор тест-данных Population Intelligence",
+    "owner": "YABLOKO INTELLIGENCE (internal)",
+    "url": null,
+    "source_type": "synthetic",
+    "license": "internal",
+    "collection_method": "deterministic_generator",
+    "coverage": "Территориальные показатели (28 метрик × 89 субъектов × 2019–2025) для разработки UI/аналитики",
+    "period": "2019–2025",
+    "update_frequency": "on_seed",
+    "reliability": {
+      "grade": "D",
+      "note": "СИНТЕТИЧЕСКИЕ данные (ADR-0005): генерируются детерминированно из seed, НЕ являются реальными значениями. Заменяются данными Росстата при импорте (Этап 5, CI/локально). Порядок величин подобран правдоподобно, значения вымышлены."
+    },
+    "status": "active",
+    "update_policy": "Отключается при первом реальном импорте Росстата по соответствующим метрикам; пометка SYNTHETIC снимается автоматически при замене данных"
   }
 ]
