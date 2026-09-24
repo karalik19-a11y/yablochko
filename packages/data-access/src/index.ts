@@ -11,3 +11,4 @@ export * from './repositories/geo.js';
 export * from './repositories/metrics.js';
 export * from './repositories/civic.js';
 export * from './repositories/matrix.js';
+export * from './repositories/elections.js';

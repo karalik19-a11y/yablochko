@@ -37,6 +37,11 @@ export interface RouteDeps {
   metricsTrust: (q: Record<string, string>) => unknown;
   civicOverview: (q: Record<string, string>) => unknown;
   positionsMatrix: (q: Record<string, string>) => unknown;
+  electionsList: (q: Record<string, string>) => unknown;
+  electionDetail: (q: Record<string, string>) => unknown;
+  electionsYablokoHistory: () => unknown;
+  electionsRegional: (q: Record<string, string>) => unknown;
+  electionsCandidates: (q: Record<string, string>) => unknown;
   metaStatus: () => unknown;
 }
 
@@ -96,6 +101,11 @@ export function buildRoutes(deps: RouteDeps): RouteDef[] {
     { url: API.metricsTrust, handler: deps.metricsTrust },
     { url: API.civicOverview, handler: (q) => deps.civicOverview(q) },
     { url: API.positionsMatrix, handler: (q) => deps.positionsMatrix(q) },
+    { url: API.electionsList, handler: (q) => deps.electionsList(q) },
+    { url: API.electionDetail, handler: (q) => deps.electionDetail(q) },
+    { url: API.electionsYablokoHistory, handler: () => deps.electionsYablokoHistory() },
+    { url: API.electionsRegional, handler: (q) => deps.electionsRegional(q) },
+    { url: API.electionsCandidates, handler: (q) => deps.electionsCandidates(q) },
     { url: API.metaStatus, handler: deps.metaStatus }
   ];
 }

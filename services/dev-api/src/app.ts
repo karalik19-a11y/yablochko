@@ -35,6 +35,13 @@ import {
   getCivicOverview,
   loadTopicLinks,
   computePositionMatrix,
+  loadElectionsFile,
+  seedElections,
+  listElections,
+  getElection,
+  getYablokoFederalHistory,
+  getRegionalElections,
+  listElectionCandidates,
   getPartyContext,
   listPositionsComputed,
   listDocuments,
@@ -72,6 +79,7 @@ export interface AppOptions {
   metricsCatalogPath?: string;
   civicTopicsPath?: string;
   positionLinksPath?: string;
+  electionsDatasetPath?: string;
   /** Отключить генерацию SYNTHETIC-метрик. */
   disableSyntheticMetrics?: boolean;
   /** Отключить генерацию SYNTHETIC-агрегатов настроений. */
@@ -204,6 +212,9 @@ export async function buildApp(opts: AppOptions): Promise<AppHandle> {
       storeCivicAggregates(db, subjectRows, { sourceId: 'synthetic-civic', methodRef: civicMethodRef });
       storeCivicAggregates(db, upRows, { sourceId: 'synthetic-civic', methodRef: civicMethodRef });
     }
+  }
+  if (opts.electionsDatasetPath) {
+    seedElections(db, loadElectionsFile(opts.electionsDatasetPath), { sourceId: 'synthetic-elections' });
   }
 
   const timers: NodeJS.Timeout[] = [];
@@ -410,6 +421,59 @@ export async function buildApp(opts: AppOptions): Promise<AppHandle> {
           'Категории разведены: позиция — OFFICIAL PARTY STATEMENT; настроения — ANALYSIS (SYNTHETIC); показатели — FACT (SYNTHETIC); сопоставление — MODEL.',
           'Совпадение позиций (согласие) не оценивается: тональность темы ≠ поддержка позиции. Матрица не содержит рекомендаций.'
         ])
+      };
+    },
+    electionsList: (q: Record<string, string>) => {
+      const level = ['federal', 'region', 'municipal'].includes(String(q.level)) ? String(q.level) : undefined;
+      const region = /^ru:[a-z_]+:[a-z0-9-_]+$/i.test(String(q.region ?? '')) ? String(q.region) : undefined;
+      const items = listElections(db, { level, regionGeoId: region });
+      return {
+        data: { items, total: items.length },
+        meta: metaFor('SEED', [
+          'Метаданные выборов UNVERIFIED (сверка с ЦИК); числовые результаты SYNTHETIC до импорта.'
+        ])
+      };
+    },
+    electionDetail: (q: Record<string, string>) => {
+      const id = String(q.id ?? '');
+      if (!id || !/^[a-z0-9-]+$/i.test(id)) return null;
+      const det = getElection(db, id);
+      if (!det) return null;
+      return {
+        data: det,
+        meta: metaFor('SEED', [
+          'Каждый результат ссылается на источник; SYNTHETIC-значения заменяются официальными при импорте ЦИК.'
+        ])
+      };
+    },
+    electionsYablokoHistory: () => {
+      const federal = getYablokoFederalHistory(db);
+      return {
+        data: { federal, data_mode: federal[0]?.data_mode ?? 'SYNTHETIC' },
+        meta: metaFor('SEED', [
+          'История партийных списков ГД: проценты/мандаты — SYNTHETIC-приближения до сверки с ЦИК.'
+        ])
+      };
+    },
+    electionsRegional: (q: Record<string, string>) => {
+      const region = /^ru:[a-z_]+:[a-z0-9-_]+$/i.test(String(q.region ?? '')) ? String(q.region) : undefined;
+      const items = getRegionalElections(db, region);
+      return {
+        data: { items, data_mode: items[0]?.data_mode ?? 'SYNTHETIC' },
+        meta: metaFor('SEED', ['Региональная история выборов — SYNTHETIC-пилот до импорта избиркомов.'])
+      };
+    },
+    electionsCandidates: (q: Record<string, string>) => {
+      const yablokoOnly = String(q.yabloko ?? '') === '1';
+      const id = /^[a-z0-9-]+$/i.test(String(q.election ?? '')) ? String(q.election) : undefined;
+      const items = listElectionCandidates(db, { electionId: id, yablokoOnly });
+      return {
+        data: {
+          items,
+          note:
+            'Кандидаты добавляются ТОЛЬКО из официальных списков (ЦИК/избиркомы/партийные документы); персональные записи не выдумываются и предсказания не строятся.'
+        },
+        meta: metaFor('SEED', ['Кандидатов в seed нет: ждёт официального импорта (Этап 8).'])
       };
     },
     civicOverview: (q: Record<string, string>) => {

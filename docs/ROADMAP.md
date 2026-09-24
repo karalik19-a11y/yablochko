@@ -13,7 +13,7 @@
 |---|---|---|---|
 | **M0 Foundation** | 1–3 | Аудит + ядро Party Context + Source Registry / ingestion | Этапы 1–3 ✅ |
 | **M1 Data Spine** | 4–5 | География, показатели территорий | Этапы 4–5 ✅ |
-| **M2 Analytics Core** | 6–8 | Настроения, Position Matrix, выборы | Этапы 6–7 ✅ |
+| **M2 Analytics Core** | 6–8 | Настроения, Position Matrix, выборы | Этапы 6–8 ✅ |
 | **M3 Deep Modules** | 9–13 | Postmortem-2026, OSINT, медиа, Decision Lab, AI | — |
 | **M4 Product Polish** | 14 | Премиум UX, целостность платформы | — |
 | **M5 Desktop Delivery** | 15–16 | Tauri Windows, Setup.exe, автообновления | — |
@@ -275,7 +275,7 @@ OVERLAP/DIVERGENCE/UNCERTAINTY; формулировки «наблюдаетс�
   страна 14 строк (5 overlap / 9 divergence), «Свободы» в unlinked, региональные
   блоки (доходы/бедность у цен), инъекция → 404 ✅.
 
-## Этап 8 — Election Intelligence
+## Этап 8 — Election Intelligence ✅ (выполнен 2026-09-24)
 
 **Цель:** база выборов.
 **Объём:** elections/districts/candidates/results/turnout с official_source; импорт
@@ -284,6 +284,38 @@ ELECTIONS, Yabloko Elections, Yabloko Candidates, Yabloko Historical Results, Re
 Election History.
 **DoD:** корректность сумм/процентов покрыта тестами; каждый результат ссылается на
 официальный источник; нет персональных предсказаний.
+
+**Результат:**
+- Миграция 006: `elections` (level federal/region/municipal, CHECK уровня,
+  UNIQUE name+date+region), `election_districts`, `election_candidates`
+  (registration_status CHECK, UNIQUE округ+имя), `election_results` (CHECK votes ≥ 0,
+  percent 0…100, UNIQUE выбор+округ+кандидат+партия), `election_turnout`
+  (CHECK ballots_cast ≤ voters_registered, valid ≤ cast). Колонок предсказаний/
+  вероятностей в схеме нет (DoD, страж-тест по PRAGMA table_info).
+- Датасет `datasets/elections/elections.json`: реестр 11 выборов — Госдума
+  1993–2021 (метаданные: даты/система/450 мандатов — установленные факты,
+  UNVERIFIED) + региональный пилот (СПб ЗакС 2021, Псков 2021, МГД 2019).
+  Результаты ЯБЛОКО и явка — SYNTHETIC-приближения (grade D): votes вычисляются
+  от valid_ballots (согласованность), заменяются при импорте ЦИК с теми же id.
+- Источник `synthetic-elections` (grade D) в Source Registry — 13 источников.
+- Репозиторий `packages/data-access/elections.ts`: идемпотентный сид
+  (ON CONFLICT по PK; votes синхронизируются с явкой), `listElections` (фильтры
+  уровень/регион), `getElection` (результаты + turnout + provenance с caveats),
+  `getYablokoFederalHistory` (барьер 5%), `getRegionalElections`,
+  `listElectionCandidates` (seed пуст — персоналии не выдумываются),
+  `validateElectionConsistency` (явка = cast/registered ±0.5; votes ≈
+  valid×percent ±1%; сумма списков ≤ 100; сумма мест ≤ seats_total).
+- API: `/api/v1/elections` (+фильтры), `/elections/detail?id=`, 
+  `/elections/yabloko-history`, `/elections/region`, `/elections/candidates`
+  (вал: id `[a-z0-9-]`, инъекции/traversal → 404). Контракт api-contract/elections.ts.
+- Экран ELECTIONS: история ГД столбцами (барьер 5% выделен, «констатация, не
+  оценка»), список выборов с фильтрами и бейджами SYN/UNVERIFIED, карточка
+  выборов (результаты/явка/provenance/caveats), региональная история.
+  Кандидаты — честное пустое состояние до официального импорта.
+- Проверено: Vitest 117/117 (сид/idempotency/CHECK-стражи/согласованность
+  0 ошибок/orphan-источники/барьер/детерминизм/страж «нет predict»), 
+  lint/typecheck/build ✅, runtime: 11 выборов, ГД-2021 ЯБЛОКО 1.34%/4 мандата,
+  история 8 точек, traversal → 404, Этапы 1–7 не сломаны (200) ✅.
 
 ## Этап 9 — Post-Election 2026
 
@@ -391,4 +423,5 @@ launch → login → analysis → export → update → uninstall; финаль�
 | 5. Population Intelligence | ✅ завершён (2026-09-24) |
 | 6. Civic Intelligence | ✅ выполнен (агрегат-only pipeline, k-анонимность, CIVIC TRENDS) |
 | 7. YABLOKO Position Matrix | ✅ выполнен (матрица категорий, OVERLAP/DIVERGENCE/UNCERTAINTY, стражи несмешения) |
-| 8–18 | — запланированы |
+| 8. Election Intelligence | ✅ выполнен (база выборов, official_source, суммы/проценты тестами, нет предсказаний) |
+| 9–18 | — запланированы |

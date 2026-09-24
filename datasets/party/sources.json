@@ -214,5 +214,23 @@
     },
     "status": "active",
     "update_policy": "Отключается при первом реальном импорте настроений; пометка SYNTHETIC снимается автоматически"
+  },
+  {
+    "source_id": "synthetic-elections",
+    "name": "SYNTHETIC: приближения результатов выборов",
+    "owner": "YABLOKO INTELLIGENCE (internal)",
+    "url": null,
+    "source_type": "synthetic",
+    "license": "internal",
+    "collection_method": "deterministic_seed",
+    "coverage": "Реестр выборов: Госдума 1993–2021 (8), региональный пилот (3); результаты и явка — согласованные приближения",
+    "period": "1993-12-12…2021-09-19",
+    "update_frequency": "on_seed",
+    "reliability": {
+      "grade": "D",
+      "note": "SYNTHETIC-приближения результатов выборов (votes согласованы с valid_ballots) для демонстрации интерфейса. НЕ официальные данные ЦИК. Заменяются при fixtures/CI-импорте ЦИК (Этап 8)."
+    },
+    "status": "active",
+    "update_policy": "Отключается при первом реальном импорте результатов выборов; пометка SYNTHETIC снимается автоматически"
   }
 ]

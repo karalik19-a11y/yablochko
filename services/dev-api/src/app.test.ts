@@ -13,7 +13,11 @@ import {
   TerritoryMetrics,
   TrustChain,
   CivicOverview,
-  PositionMatrix
+  PositionMatrix,
+  ElectionsList,
+  ElectionDetail,
+  YablokoElectionHistory,
+  RegionalElectionHistory
 } from '@yabloko/api-contract';
 import { z } from 'zod';
 
@@ -35,7 +39,8 @@ async function withApp(fn: (app: Awaited<ReturnType<typeof buildApp>>['app']) =>
     geoDatasetPath: resolve(process.cwd(), 'datasets/geo/rf.json'),
     metricsCatalogPath: resolve(process.cwd(), 'datasets/metrics/catalog.json'),
     civicTopicsPath: resolve(process.cwd(), 'datasets/civic/topics.json'),
-    positionLinksPath: resolve(process.cwd(), 'datasets/civic/topic_links.json')
+    positionLinksPath: resolve(process.cwd(), 'datasets/civic/topic_links.json'),
+    electionsDatasetPath: resolve(process.cwd(), 'datasets/elections/elections.json')
   });
   try {
     await fn(handle.app);
@@ -206,6 +211,51 @@ describe('dev-api (интеграция контракта)', () => {
 
       // инъекция geo → 404
       const bad = await app.inject({ method: 'GET', url: `${API.positionsMatrix}?geo=javascript:alert(1)` });
+      expect(bad.statusCode).toBe(404);
+    });
+  });
+
+  it('elections: база выборов по контракту, согласованность сумм/процентов, official source', async () => {
+    await withApp(async (app) => {
+      const list = await app.inject({ method: 'GET', url: API.electionsList });
+      const el = Envelope(ElectionsList).parse(list.json()).data;
+      expect(el.total).toBe(11);
+      expect(el.items.filter((e) => e.level === 'federal')).toHaveLength(8);
+      for (const e of el.items) {
+        expect(e.official_source_id).toBe('synthetic-elections');
+        expect(e.data_mode).toBe('SYNTHETIC');
+      }
+
+      const det = await app.inject({ method: 'GET', url: `${API.electionDetail}?id=ru-gd-2021` });
+      const d = Envelope(ElectionDetail).parse(det.json()).data;
+      expect(d.results).toHaveLength(1);
+      expect(d.results[0]!.is_yabloko).toBe(1);
+      expect(d.turnout).not.toBeNull();
+      // DoD: percent согласован с turnout (±1%)
+      const t = d.turnout!;
+      expect(Math.abs((t.valid_ballots! * (d.results[0]!.percent ?? 0)) / 100 - (d.results[0]!.votes ?? 0)) /
+        Math.max(t.valid_ballots! * (d.results[0]!.percent ?? 0) / 100, 1)).toBeLessThan(0.01);
+      // страж: в ответе нет полей предсказаний
+      expect(JSON.stringify(d)).not.toContain('predict');
+      expect(JSON.stringify(d)).not.toContain('win_probability');
+      expect(d.provenance.caveats.length).toBeGreaterThanOrEqual(2);
+
+      const hist = await app.inject({ method: 'GET', url: API.electionsYablokoHistory });
+      const h = Envelope(YablokoElectionHistory).parse(hist.json()).data;
+      expect(h.federal).toHaveLength(8);
+      expect(h.federal[0]!.passed_barrier).toBe(true);
+      expect(h.federal[h.federal.length - 1]!.passed_barrier).toBe(false);
+
+      const reg = await app.inject({
+        method: 'GET',
+        url: `${API.electionsRegional}?region=${encodeURIComponent('ru:subject:spe')}`
+      });
+      const r = Envelope(RegionalElectionHistory).parse(reg.json()).data;
+      expect(r.items).toHaveLength(1);
+      expect(r.items[0]!.yabloko_seats).toBeGreaterThan(0);
+
+      // валидация: битый id → 404
+      const bad = await app.inject({ method: 'GET', url: `${API.electionDetail}?id=..%2Fetc` });
       expect(bad.statusCode).toBe(404);
     });
   });

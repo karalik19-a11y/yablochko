@@ -22,7 +22,7 @@ export const NAV: NavItem[] = [
   { key: 'civic-trends', label: 'Общественные настроения', group: 'Темы и позиции', stage: null, description: 'Civic Sentiment Engine: только агрегаты, k-анонимность, SYNTHETIC (Этап 6)' },
   { key: 'issues', label: 'Проблемы (Issues)', group: 'Темы и позиции', stage: 6, description: 'Issue Tracker: растущие и затухающие темы (Этап 6)' },
   { key: 'yabloko-position', label: 'Позиция «Яблока»', group: 'Темы и позиции', stage: null, description: 'Реестр позиций партии; матрица с общественным мнением — Этап 7' },
-  { key: 'elections', label: 'Выборы', group: 'Электорат', stage: 8, description: 'Election Intelligence: база выборов и результатов (Этап 8)' },
+  { key: 'elections', label: 'Выборы', group: 'Электорат', stage: null, description: 'Election Intelligence: результаты и явка с official_source; SYNTHETIC до импорта ЦИК (Этап 8)' },
   { key: 'media', label: 'Медиа', group: 'Информационная среда', stage: 11, description: 'Media Intelligence и мониторинг упоминаний (Этап 11)' },
   { key: 'osint', label: 'OSINT', group: 'Информационная среда', stage: 10, description: 'Публичные фигуры и организации, граф связей (Этап 10)' },
   { key: 'decision-lab', label: 'Decision Lab', group: 'Информационная среда', stage: 12, description: 'ALADDIN: сценарное моделирование (Этап 12)' },

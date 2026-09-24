@@ -414,6 +414,99 @@ CREATE TABLE pii_log (
   at TEXT NOT NULL
 );
 `
+  },
+  {
+    id: 6,
+    name: '006_election_intelligence',
+    sql: `
+-- Election Intelligence (Этап 8): база выборов. Каждая строка результата
+-- ссылается на источник (official_source_id; до импорта ЦИК — synthetic-elections
+-- grade D). Колонок предсказаний/вероятностей в схеме нет (DoD).
+CREATE TABLE elections (
+  election_id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  election_date TEXT NOT NULL,
+  level TEXT NOT NULL CHECK (level IN ('federal','region','municipal')),
+  region_geo_id TEXT REFERENCES geography(geo_id),
+  election_type TEXT NOT NULL,
+  electoral_system TEXT,
+  seats_total INTEGER,
+  official_source_id TEXT NOT NULL REFERENCES sources(source_id),
+  data_mode TEXT NOT NULL DEFAULT 'SYNTHETIC',
+  verification_status TEXT NOT NULL DEFAULT 'UNVERIFIED',
+  note TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE(name, election_date, region_geo_id)
+);
+
+CREATE TABLE election_districts (
+  district_id TEXT PRIMARY KEY,
+  election_id TEXT NOT NULL REFERENCES elections(election_id),
+  district_name TEXT NOT NULL,
+  district_number INTEGER,
+  magnitude INTEGER NOT NULL DEFAULT 1 CHECK (magnitude >= 1),
+  geo_id TEXT REFERENCES geography(geo_id),
+  UNIQUE(election_id, district_name)
+);
+
+CREATE TABLE election_candidates (
+  candidate_id TEXT PRIMARY KEY,
+  election_id TEXT NOT NULL REFERENCES elections(election_id),
+  district_id TEXT REFERENCES election_districts(district_id),
+  person_name TEXT NOT NULL,
+  party_name TEXT,
+  is_yabloko INTEGER NOT NULL DEFAULT 0 CHECK (is_yabloko IN (0,1)),
+  nomination TEXT,
+  registration_status TEXT CHECK (registration_status IN
+    ('registered','withdrawn','rejected','pending') OR registration_status IS NULL),
+  official_source_id TEXT NOT NULL REFERENCES sources(source_id),
+  verification_status TEXT NOT NULL DEFAULT 'UNVERIFIED',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE(election_id, district_id, person_name)
+);
+
+CREATE TABLE election_results (
+  result_id TEXT PRIMARY KEY,
+  election_id TEXT NOT NULL REFERENCES elections(election_id),
+  district_id TEXT REFERENCES election_districts(district_id),
+  candidate_id TEXT REFERENCES election_candidates(candidate_id),
+  party_name TEXT,
+  is_party_list INTEGER NOT NULL DEFAULT 0 CHECK (is_party_list IN (0,1)),
+  is_yabloko INTEGER NOT NULL DEFAULT 0 CHECK (is_yabloko IN (0,1)),
+  votes INTEGER NOT NULL CHECK (votes >= 0),
+  percent REAL CHECK (percent IS NULL OR (percent >= 0 AND percent <= 100)),
+  seats INTEGER CHECK (seats IS NULL OR seats >= 0),
+  official_source_id TEXT NOT NULL REFERENCES sources(source_id),
+  data_mode TEXT NOT NULL DEFAULT 'SYNTHETIC',
+  verification_status TEXT NOT NULL DEFAULT 'UNVERIFIED',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE(election_id, district_id, candidate_id, party_name)
+);
+
+CREATE TABLE election_turnout (
+  turnout_id TEXT PRIMARY KEY,
+  election_id TEXT NOT NULL REFERENCES elections(election_id),
+  district_id TEXT REFERENCES election_districts(district_id),
+  voters_registered INTEGER NOT NULL CHECK (voters_registered >= 0),
+  ballots_cast INTEGER NOT NULL CHECK (ballots_cast >= 0 AND ballots_cast <= voters_registered),
+  valid_ballots INTEGER CHECK (valid_ballots IS NULL OR (valid_ballots >= 0 AND valid_ballots <= ballots_cast)),
+  percent REAL NOT NULL CHECK (percent >= 0 AND percent <= 100),
+  official_source_id TEXT NOT NULL REFERENCES sources(source_id),
+  data_mode TEXT NOT NULL DEFAULT 'SYNTHETIC',
+  verification_status TEXT NOT NULL DEFAULT 'UNVERIFIED',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE(election_id, district_id)
+);
+
+CREATE INDEX idx_elections_date ON elections(election_date DESC);
+CREATE INDEX idx_results_election ON election_results(election_id);
+CREATE INDEX idx_candidates_election ON election_candidates(election_id, is_yabloko);
+CREATE INDEX idx_turnout_election ON election_turnout(election_id);
+`
   }
 ];
 

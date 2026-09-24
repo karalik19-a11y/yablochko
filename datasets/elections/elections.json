@@ -1,0 +1,313 @@
+{
+  "meta": {
+    "note": "Election Intelligence (Этап 8). Метаданные выборов (название/дата/уровень/система) — установленные публичные факты из INITIAL CONTEXT, статус UNVERIFIED до сверки с ЦИК. Числовые результаты (голоса/проценты/мандаты/явка) — SYNTHETIC-ПРИБЛИЖЕНИЯ для демонстрации интерфейса (grade D, source synthetic-elections): согласованы внутренне (votes вычисляются от valid_ballots), но НЕ являются официальными данными; заменяются при CI-импорте ЦИК с сохранением тех же election_id. Персональные кандидаты в seed отсутствуют (не выдумываются) — добавляются только из официальных списков.",
+    "methodology": "Схема: elections → election_districts → election_results (партийные списки и кандидаты) / election_turnout. Каждая строка несёт official_source_id. Согласованность: votes ≈ valid_ballots × percent / 100 (±1% округления); ballots_cast ≤ voters_registered; seats ≤ seats_total. Тесты покрывают суммы и проценты (DoD). Колонок предсказаний/вероятностей победы нет — запрещены.",
+    "as_of": "2026-09-24"
+  },
+  "elections": [
+    {
+      "election_id": "ru-gd-1993",
+      "name": "Выборы депутатов Государственной Думы I созыва",
+      "election_date": "1993-12-12",
+      "level": "federal",
+      "region_geo_id": null,
+      "election_type": "parliament",
+      "electoral_system": "mixed",
+      "seats_total": 450
+    },
+    {
+      "election_id": "ru-gd-1995",
+      "name": "Выборы депутатов Государственной Думы II созыва",
+      "election_date": "1995-12-17",
+      "level": "federal",
+      "region_geo_id": null,
+      "election_type": "parliament",
+      "electoral_system": "mixed",
+      "seats_total": 450
+    },
+    {
+      "election_id": "ru-gd-1999",
+      "name": "Выборы депутатов Государственной Думы III созыва",
+      "election_date": "1999-12-19",
+      "level": "federal",
+      "region_geo_id": null,
+      "election_type": "parliament",
+      "electoral_system": "mixed",
+      "seats_total": 450
+    },
+    {
+      "election_id": "ru-gd-2003",
+      "name": "Выборы депутатов Государственной Думы IV созыва",
+      "election_date": "2003-12-07",
+      "level": "federal",
+      "region_geo_id": null,
+      "election_type": "parliament",
+      "electoral_system": "mixed",
+      "seats_total": 450
+    },
+    {
+      "election_id": "ru-gd-2007",
+      "name": "Выборы депутатов Государственной Думы V созыва",
+      "election_date": "2007-12-02",
+      "level": "federal",
+      "region_geo_id": null,
+      "election_type": "parliament",
+      "electoral_system": "proportional",
+      "seats_total": 450
+    },
+    {
+      "election_id": "ru-gd-2011",
+      "name": "Выборы депутатов Государственной Думы VI созыва",
+      "election_date": "2011-12-04",
+      "level": "federal",
+      "region_geo_id": null,
+      "election_type": "parliament",
+      "electoral_system": "proportional",
+      "seats_total": 450
+    },
+    {
+      "election_id": "ru-gd-2016",
+      "name": "Выборы депутатов Государственной Думы VII созыва",
+      "election_date": "2016-09-18",
+      "level": "federal",
+      "region_geo_id": null,
+      "election_type": "parliament",
+      "electoral_system": "mixed",
+      "seats_total": 450
+    },
+    {
+      "election_id": "ru-gd-2021",
+      "name": "Выборы депутатов Государственной Думы VIII созыва",
+      "election_date": "2021-09-19",
+      "level": "federal",
+      "region_geo_id": null,
+      "election_type": "parliament",
+      "electoral_system": "mixed",
+      "seats_total": 450
+    },
+    {
+      "election_id": "spb-zaks-2021",
+      "name": "Выборы депутатов Законодательного собрания Санкт-Петербурга",
+      "election_date": "2021-09-19",
+      "level": "region",
+      "region_geo_id": "ru:subject:spe",
+      "election_type": "regional_parliament",
+      "electoral_system": "mixed",
+      "seats_total": 50
+    },
+    {
+      "election_id": "psk-oblast-2021",
+      "name": "Выборы депутатов Псковского областного Собрания",
+      "election_date": "2021-09-19",
+      "level": "region",
+      "region_geo_id": "ru:subject:psk",
+      "election_type": "regional_parliament",
+      "electoral_system": "mixed",
+      "seats_total": 26
+    },
+    {
+      "election_id": "msk-gorduma-2019",
+      "name": "Выборы депутатов Московской городской Думы",
+      "election_date": "2019-09-08",
+      "level": "region",
+      "region_geo_id": "ru:subject:mow",
+      "election_type": "regional_parliament",
+      "electoral_system": "majoritarian",
+      "seats_total": 45
+    }
+  ],
+  "results": [
+    {
+      "result_id": "res-gd1993-yabloko",
+      "election_id": "ru-gd-1993",
+      "party_name": "ЯБЛОКО",
+      "is_party_list": 1,
+      "is_yabloko": 1,
+      "percent": 7.86,
+      "seats": 27
+    },
+    {
+      "result_id": "res-gd1995-yabloko",
+      "election_id": "ru-gd-1995",
+      "party_name": "ЯБЛОКО",
+      "is_party_list": 1,
+      "is_yabloko": 1,
+      "percent": 6.89,
+      "seats": 45
+    },
+    {
+      "result_id": "res-gd1999-yabloko",
+      "election_id": "ru-gd-1999",
+      "party_name": "ЯБЛОКО",
+      "is_party_list": 1,
+      "is_yabloko": 1,
+      "percent": 5.93,
+      "seats": 24
+    },
+    {
+      "result_id": "res-gd2003-yabloko",
+      "election_id": "ru-gd-2003",
+      "party_name": "ЯБЛОКО",
+      "is_party_list": 1,
+      "is_yabloko": 1,
+      "percent": 4.3,
+      "seats": 4
+    },
+    {
+      "result_id": "res-gd2007-yabloko",
+      "election_id": "ru-gd-2007",
+      "party_name": "ЯБЛОКО",
+      "is_party_list": 1,
+      "is_yabloko": 1,
+      "percent": 1.59,
+      "seats": 0
+    },
+    {
+      "result_id": "res-gd2011-yabloko",
+      "election_id": "ru-gd-2011",
+      "party_name": "ЯБЛОКО",
+      "is_party_list": 1,
+      "is_yabloko": 1,
+      "percent": 3.22,
+      "seats": 0
+    },
+    {
+      "result_id": "res-gd2016-yabloko",
+      "election_id": "ru-gd-2016",
+      "party_name": "ЯБЛОКО",
+      "is_party_list": 1,
+      "is_yabloko": 1,
+      "percent": 1.99,
+      "seats": 1
+    },
+    {
+      "result_id": "res-gd2021-yabloko",
+      "election_id": "ru-gd-2021",
+      "party_name": "ЯБЛОКО",
+      "is_party_list": 1,
+      "is_yabloko": 1,
+      "percent": 1.34,
+      "seats": 4
+    },
+    {
+      "result_id": "res-spb2021-yabloko",
+      "election_id": "spb-zaks-2021",
+      "party_name": "ЯБЛОКО",
+      "is_party_list": 1,
+      "is_yabloko": 1,
+      "percent": 7.1,
+      "seats": 4
+    },
+    {
+      "result_id": "res-psk2021-yabloko",
+      "election_id": "psk-oblast-2021",
+      "party_name": "ЯБЛОКО",
+      "is_party_list": 1,
+      "is_yabloko": 1,
+      "percent": 12.4,
+      "seats": 3
+    },
+    {
+      "result_id": "res-mgd2019-yabloko",
+      "election_id": "msk-gorduma-2019",
+      "party_name": "ЯБЛОКО",
+      "is_party_list": 0,
+      "is_yabloko": 1,
+      "percent": null,
+      "seats": 1,
+      "votes": 39000
+    }
+  ],
+  "turnout": [
+    {
+      "turnout_id": "to-gd1993",
+      "election_id": "ru-gd-1993",
+      "voters_registered": 105800000,
+      "ballots_cast": 69800000,
+      "valid_ballots": 54300000,
+      "percent": 66.0
+    },
+    {
+      "turnout_id": "to-gd1995",
+      "election_id": "ru-gd-1995",
+      "voters_registered": 107500000,
+      "ballots_cast": 69500000,
+      "valid_ballots": 62200000,
+      "percent": 64.7
+    },
+    {
+      "turnout_id": "to-gd1999",
+      "election_id": "ru-gd-1999",
+      "voters_registered": 109400000,
+      "ballots_cast": 66800000,
+      "valid_ballots": 61500000,
+      "percent": 61.1
+    },
+    {
+      "turnout_id": "to-gd2003",
+      "election_id": "ru-gd-2003",
+      "voters_registered": 108900000,
+      "ballots_cast": 60760000,
+      "valid_ballots": 58000000,
+      "percent": 55.8
+    },
+    {
+      "turnout_id": "to-gd2007",
+      "election_id": "ru-gd-2007",
+      "voters_registered": 107200000,
+      "ballots_cast": 67900000,
+      "valid_ballots": 67500000,
+      "percent": 63.3
+    },
+    {
+      "turnout_id": "to-gd2011",
+      "election_id": "ru-gd-2011",
+      "voters_registered": 109800000,
+      "ballots_cast": 66200000,
+      "valid_ballots": 65700000,
+      "percent": 60.2
+    },
+    {
+      "turnout_id": "to-gd2016",
+      "election_id": "ru-gd-2016",
+      "voters_registered": 111700000,
+      "ballots_cast": 53500000,
+      "valid_ballots": 52000000,
+      "percent": 47.9
+    },
+    {
+      "turnout_id": "to-gd2021",
+      "election_id": "ru-gd-2021",
+      "voters_registered": 109200000,
+      "ballots_cast": 56460000,
+      "valid_ballots": 55600000,
+      "percent": 51.7
+    },
+    {
+      "turnout_id": "to-spb2021",
+      "election_id": "spb-zaks-2021",
+      "voters_registered": 3890000,
+      "ballots_cast": 1390000,
+      "valid_ballots": 1370000,
+      "percent": 35.7
+    },
+    {
+      "turnout_id": "to-psk2021",
+      "election_id": "psk-oblast-2021",
+      "voters_registered": 577000,
+      "ballots_cast": 219000,
+      "valid_ballots": 216000,
+      "percent": 38.0
+    },
+    {
+      "turnout_id": "to-mgd2019",
+      "election_id": "msk-gorduma-2019",
+      "voters_registered": 7240000,
+      "ballots_cast": 2220000,
+      "valid_ballots": 2190000,
+      "percent": 30.7
+    }
+  ],
+  "districts": [],
+  "candidates": []
+}
