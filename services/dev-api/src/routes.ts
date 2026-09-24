@@ -8,7 +8,7 @@ import { API } from '@yabloko/api-contract';
 export interface RouteDef {
   url: string;
   method?: 'GET' | 'POST';
-  handler: (query: Record<string, string>) => unknown;
+  handler: (query: Record<string, string>, params?: Record<string, string>) => unknown;
   postHandler?: (body: Record<string, unknown>) => unknown;
 }
 
@@ -26,6 +26,10 @@ export interface RouteDeps {
   documentSearch: (query: { q?: string }) => unknown;
   alerts: (query: { openOnly?: string }) => unknown;
   acknowledge: (alertId: string) => boolean;
+  geoTree: () => unknown;
+  geoMap: (q: Record<string, string>) => unknown;
+  geoSearch: (q: Record<string, string>) => unknown;
+  territory: (geoId: string) => unknown;
   metaStatus: () => unknown;
 }
 
@@ -67,6 +71,13 @@ export function buildRoutes(deps: RouteDeps): RouteDef[] {
         // здесь — через обращение к общей функции, проброшенной в deps.
         return { ok: true, alert_id: alertId, acknowledged: deps.acknowledge?.(alertId) ?? false };
       }
+    },
+    { url: API.geoTree, handler: deps.geoTree },
+    { url: API.geoMap, handler: deps.geoMap },
+    { url: API.geoSearch, handler: (q) => deps.geoSearch({ q: String(q.q ?? '') }) },
+    {
+      url: `${API.territory}/:geoId`,
+      handler: (_q, params) => deps.territory(String(params?.['geoId'] ?? ''))
     },
     { url: API.metaStatus, handler: deps.metaStatus }
   ];

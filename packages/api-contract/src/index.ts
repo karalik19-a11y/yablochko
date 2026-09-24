@@ -3,6 +3,7 @@ export * from './party.js';
 export * from './meta.js';
 export * from './alerts.js';
 export * from './documents.js';
+export * from './geo.js';
 
 /** Маршруты API v1 (единый источник истины для клиента и сервера). */
 export const API = {
@@ -18,5 +19,9 @@ export const API = {
   sources: '/api/v1/sources',
   documents: '/api/v1/documents',
   documentSearch: '/api/v1/documents/search',
-  alerts: '/api/v1/alerts'
+  alerts: '/api/v1/alerts',
+  geoTree: '/api/v1/geo/tree',
+  geoMap: '/api/v1/geo/map',
+  geoSearch: '/api/v1/geo/search',
+  territory: '/api/v1/geo/territory'
 } as const;

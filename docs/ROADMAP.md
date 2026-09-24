@@ -12,7 +12,7 @@
 | Веха | Этапы | Смысл | Состояние |
 |---|---|---|---|
 | **M0 Foundation** | 1–3 | Аудит + ядро Party Context + Source Registry / ingestion | Этапы 1–3 ✅ |
-| **M1 Data Spine** | 4–5 | География, показатели территорий | — |
+| **M1 Data Spine** | 4–5 | География, показатели территорий | Этап 4 ✅ |
 | **M2 Analytics Core** | 6–8 | Настроения, Position Matrix, выборы | — |
 | **M3 Deep Modules** | 9–13 | Postmortem-2026, OSINT, медиа, Decision Lab, AI | — |
 | **M4 Product Polish** | 14 | Премиум UX, целостность платформы | — |
@@ -122,7 +122,7 @@ Alert SOURCE_FAILURE работает; ни одна запись без provena
   retry, SSRF-guard, редиректы, дедупликация, версии, FTS, алерты), build ✅,
   runtime: 4 fixture-документа в БД, поиск, алерты, acknowledge ✅.
 
-## Этап 4 — Географическая база
+## Этап 4 — Географическая база ✅ (выполнен 2026-09-24)
 
 **Цель:** полная иерархия РФ + карта.
 **Объём:** `geography` (6 уровней, stable `ru:{level}:{code}`, `geo_merges`), seed
@@ -131,7 +131,25 @@ Alert SOURCE_FAILURE работает; ни одна запись без provena
 **DoD:** клик по субъекту открывает Territory Profile (каркас); границы отображаются
 без сети; тесты idempotency geo-идов; бюджет размера бандла границ соблюдён.
 
-## Этап 5 — Population Intelligence
+**Результат:**
+- Справочник `datasets/geo/rf.json`: 1 страна + 8 ФО + **89 субъектов** (по официальной
+  классификации РФ; ISO 3166-2:RU где присвоен, rf_internal — иначе) + пилотный
+  муниципальный слой (СПб, Псковская обл., coverage=pilot_partial).
+- Stable IDs (ADR-0008): `ru:{level}:{код}`; идемпотентный seed; переименования
+  сохраняют geo_id (покрыто тестом); слияния — `geo_merges` + деактивация старого ID.
+- Миграция 003: `geography` (6 уровней, CHECK-валидность) + `geo_merges`.
+- Карта: MapLibre (npm, офлайн) со **схематической tile-картограммой** субъектов —
+  методология слоя помечает «НЕ географические границы»; замена на реальные границы —
+  через ingestion (инструкция в datasets/geo/README.md). Фильтр по ФО, hover-tooltip,
+  клик → Territory Profile, fitBounds, тёмная/светлая темы.
+- Territory Profile: хлебные крошки (страна→ФО→субъект→МО), 19 разделов
+  (DEMOGRAPHICS … YABLOKO ACTIVITY) с честным INSUFFICIENT DATA + этап подключения.
+- API: /geo/tree, /geo/map?fd=, /geo/search?q=, /geo/territory/:geoId.
+- Палитра команд: живой Search region/city (Ctrl+K).
+- Проверено: Vitest 50/50 (картограмма: 89 уникальных ячеек; иерархия без сирот;
+  idempotency; слияния; поиск; drill-down), lint/typecheck/build ✅, runtime ✅.
+
+## Этап 5 — Population Intelligence (СЛЕДУЮЩИЙ)
 
 **Цель:** каркас территориальных показателей.
 **Объём:** единый формат `regional_metrics` (value/trend/period/source/quality/confidence);
@@ -272,5 +290,6 @@ launch → login → analysis → export → update → uninstall; финаль�
 | 1. Audit | ✅ завершён (2026-09-24) |
 | 2. YABLOKO Context | ✅ завершён (2026-09-24) |
 | 3. Источники России | ✅ завершён (2026-09-24) |
-| 4. Географическая база | ⏭ следующий |
-| 5–18 | — запланированы |
+| 4. Географическая база | ✅ завершён (2026-09-24) |
+| 5. Population Intelligence | ⏭ следующий |
+| 6–18 | — запланированы |

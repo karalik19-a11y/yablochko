@@ -8,6 +8,7 @@ const host = process.env.HOST ?? '0.0.0.0';
 const { app } = await buildApp({
   dbPath: process.env.DB_PATH ?? resolve(repoRoot, 'var/yabloko.db'),
   datasetsDir: process.env.DATASETS_DIR ?? resolve(repoRoot, 'datasets/party'),
+  geoDatasetPath: process.env.GEO_DATASET ?? resolve(repoRoot, 'datasets/geo/rf.json'),
   staticDir: process.env.STATIC_DIR ?? resolve(repoRoot, 'apps/web-dev/dist'),
   version: '0.2.0',
   stage: 2,

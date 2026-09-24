@@ -7,6 +7,14 @@ import {
   migrate,
   loadSeedDir,
   seedFromBundle,
+  seedGeography,
+  loadRfGeoFile,
+  getGeoTree,
+  getGeoChildren,
+  getGeoNode,
+  getGeoPath,
+  searchGeo,
+  buildSubjectMap,
   getPartyContext,
   listPositionsComputed,
   listDocuments,
@@ -40,6 +48,7 @@ import { buildRoutes } from './routes.js';
 export interface AppOptions {
   dbPath: string;
   datasetsDir: string;
+  geoDatasetPath?: string;
   staticDir?: string;
   version: string;
   stage: number;
@@ -51,6 +60,28 @@ export interface AppOptions {
 
 export const DATA_MODE_NOTE =
   'Данные заполнены seed-набором из INITIAL CONTEXT мастер-плана. Все записи имеют статус UNVERIFIED до подключения официальных источников. Документы источников с fetch_mode=fixture — синтетические тест-снимки.';
+
+const TERRITORY_SECTIONS: Array<{ key: string; title: string; stage: number | null }> = [
+  { key: 'demographics', title: 'DEMOGRAPHICS', stage: 5 },
+  { key: 'economy', title: 'ECONOMY', stage: 5 },
+  { key: 'employment', title: 'EMPLOYMENT', stage: 5 },
+  { key: 'income', title: 'INCOME', stage: 5 },
+  { key: 'housing', title: 'HOUSING', stage: 5 },
+  { key: 'healthcare', title: 'HEALTHCARE', stage: 5 },
+  { key: 'education', title: 'EDUCATION', stage: 5 },
+  { key: 'transport', title: 'TRANSPORT', stage: 5 },
+  { key: 'ecology', title: 'ECOLOGY', stage: 5 },
+  { key: 'municipal_services', title: 'MUNICIPAL SERVICES', stage: 5 },
+  { key: 'migration', title: 'MIGRATION', stage: 5 },
+  { key: 'business', title: 'BUSINESS', stage: 5 },
+  { key: 'infrastructure', title: 'INFRASTRUCTURE', stage: 5 },
+  { key: 'public_concerns', title: 'PUBLIC CONCERNS', stage: 6 },
+  { key: 'media_environment', title: 'MEDIA ENVIRONMENT', stage: 11 },
+  { key: 'election_history', title: 'ELECTION HISTORY', stage: 8 },
+  { key: 'local_political_events', title: 'LOCAL POLITICAL EVENTS', stage: 9 },
+  { key: 'local_public_figures', title: 'LOCAL PUBLIC FIGURES', stage: 10 },
+  { key: 'yabloko_activity', title: 'YABLOKO ACTIVITY', stage: 8 }
+];
 
 export interface AppHandle {
   app: FastifyInstance;
@@ -77,6 +108,9 @@ export async function buildApp(opts: AppOptions): Promise<AppHandle> {
   }
   const bundle = loadSeedDir(opts.datasetsDir);
   seedFromBundle(db, bundle);
+  if (opts.geoDatasetPath !== null && opts.geoDatasetPath !== undefined) {
+    seedGeography(db, loadRfGeoFile(opts.geoDatasetPath));
+  }
 
   const timers: NodeJS.Timeout[] = [];
 
@@ -202,6 +236,34 @@ export async function buildApp(opts: AppOptions): Promise<AppHandle> {
       return { data: { alerts, openCount: Number(openRow.n) }, meta: metaFor('SEED') };
     },
     acknowledge: (alertId: string) => acknowledgeAlert(db, alertId),
+    geoTree: () => {
+      return { data: getGeoTree(db), meta: metaFor('SEED', ['Справочник по официальной классификации РФ; коды ОКТМО добавляются при импорте (Этап 5+).']) };
+    },
+    geoMap: (q: Record<string, string>) => {
+      const fd = q.fd && q.fd.startsWith('ru:fd:') ? q.fd : undefined;
+      return { data: buildSubjectMap(db, fd), meta: metaFor('SEED') };
+    },
+    geoSearch: (q: Record<string, string>) => {
+      const query = (q.q ?? '').slice(0, 100);
+      return { data: { query, items: searchGeo(db, query) }, meta: metaFor('SEED') };
+    },
+    territory: (geoId: string) => {
+      const node = getGeoNode(db, geoId);
+      if (!node) return null;
+      const path = getGeoPath(db, geoId);
+      const parent = node.parent_id ? getGeoNode(db, node.parent_id) : null;
+      const children = getGeoChildren(db, geoId);
+      const childLabel =
+        node.level === 'country'
+          ? 'Федеральные округа'
+          : node.level === 'federal_district'
+            ? 'Субъекты РФ'
+            : node.level === 'subject'
+              ? 'Муниципальный уровень (пилот, частично)'
+              : 'Нижний уровень';
+      const sections = TERRITORY_SECTIONS.map((sec) => ({ ...sec, status: 'insufficient_data' as const }));
+      return { data: { node, path, parent, children, childLabel, sections }, meta: metaFor('SEED', ['Территориальные показатели подключаются с Этапа 5 (regional_metrics).']) };
+    },
     metaStatus: () => {
       const status: MetaStatus = getMetaStatus(
         db,
@@ -226,7 +288,13 @@ export async function buildApp(opts: AppOptions): Promise<AppHandle> {
     } else {
       app.get(r.url, async (req, reply) => {
         const q = (req.query ?? {}) as Record<string, string>;
-        reply.send(r.handler(q));
+        const params = (req.params ?? {}) as Record<string, string>;
+        const payload = r.handler(q, params);
+        if (payload === null) {
+          reply.code(404).send({ error: 'Территория не найдена' });
+          return;
+        }
+        reply.send(payload);
       });
     }
   }

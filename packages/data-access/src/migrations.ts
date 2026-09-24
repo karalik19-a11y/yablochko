@@ -269,6 +269,42 @@ CREATE VIRTUAL TABLE documents_fts USING fts5(
   tokenize = 'unicode61 remove_diacritics 2'
 );
 `
+  },
+  {
+    id: 3,
+    name: '003_geography',
+    sql: `
+CREATE TABLE geography (
+  geo_id TEXT PRIMARY KEY,
+  level TEXT NOT NULL CHECK (level IN ('country','federal_district','subject','municipality','city','district')),
+  parent_id TEXT REFERENCES geography(geo_id),
+  name TEXT NOT NULL,
+  short_name TEXT,
+  official_code TEXT,
+  code_system TEXT,
+  grid_col INTEGER,
+  grid_row INTEGER,
+  meta_json TEXT,
+  is_active INTEGER NOT NULL DEFAULT 1,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX idx_geo_parent ON geography(parent_id);
+CREATE INDEX idx_geo_level ON geography(level, sort_order);
+
+-- Слияния/переименования территорий: старый ID указывает на новый,
+-- история сохраняется (ADR-0008)
+CREATE TABLE geo_merges (
+  merge_id TEXT PRIMARY KEY,
+  from_geo_id TEXT NOT NULL,
+  to_geo_id TEXT NOT NULL REFERENCES geography(geo_id),
+  date TEXT,
+  note TEXT,
+  source_id TEXT,
+  created_at TEXT NOT NULL
+);
+`
   }
 ];
 

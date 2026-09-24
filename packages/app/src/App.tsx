@@ -11,6 +11,8 @@ import { SourcesScreen } from './screens/Sources.js';
 import { SettingsScreen } from './screens/Settings.js';
 import { AlertsScreen } from './screens/Alerts.js';
 import { PlaceholderScreen } from './screens/Placeholder.js';
+import { TerritoriesScreen } from './screens/Territories.js';
+import { TerritoryScreen } from './screens/Territory.js';
 
 const IMPLEMENTED = new Set([
   'overview',
@@ -18,7 +20,8 @@ const IMPLEMENTED = new Set([
   'organization',
   'sources',
   'alerts',
-  'settings'
+  'settings',
+  'territories'
 ]);
 
 export function App() {
@@ -52,6 +55,15 @@ export function App() {
     >
       <div key={route} className="fade-in">
         {route === 'overview' && <OverviewScreen onNavigate={navigate} />}
+        {route === 'territories' && (
+          <TerritoriesScreen theme={theme} onNavigate={navigate} />
+        )}
+        {route.startsWith('territory/') && (
+          <TerritoryScreen
+            geoId={decodeURIComponent(route.slice('territory/'.length))}
+            onNavigate={navigate}
+          />
+        )}
         {route === 'yabloko-position' && <PositionsScreen />}
         {route === 'organization' && <OrganizationScreen />}
         {route === 'sources' && <SourcesScreen />}

@@ -7,3 +7,4 @@ export * from './repositories/sources.js';
 export * from './repositories/meta.js';
 export * from './repositories/ingestion.js';
 export * from './repositories/alerts.js';
+export * from './repositories/geo.js';
